@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Gym Tracker - Push</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 428px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #2a2a3e;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .exercise-card {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .exercise-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .exercise-total {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .sets-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .set-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr 60px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .set-number {
+            color: #888;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .check-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .check-btn.completed {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .timer-modal.active {
+            display: flex;
+        }
+
+        .timer-content {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .timer-display {
+            font-size: 80px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .timer-btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .timer-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .timer-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .history-item {
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .history-date {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .history-exercises {
+            display: grid;
+            gap: 8px;
+        }
+
+        .history-exercise {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .save-btn {
+            position: fixed;
+            bottom: calc(20px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .save-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>💪 PUSH</h1>
+            <div class="date" id="currentDate"></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('workout')">Workout</button>
+            <button class="tab" onclick="switchTab('history')">History</button>
+        </div>
+
+        <div id="workoutTab" class="tab-content active">
+            <div id="exercisesContainer"></div>
+        </div>
+
+        <div id="historyTab" class="tab-content">
+            <div id="historyContainer"></div>
+        </div>
+
+        <button class="save-btn" onclick="saveWorkout()">Save Workout</button>
+    </div>
+
+    <div class="timer-modal" id="timerModal">
+        <div class="timer-content">
+            <div class="timer-display" id="timerDisplay">90</div>
+            <div class="timer-controls">
+                <button class="timer-btn secondary" onclick="skipTimer()">Skip</button>
+                <button class="timer-btn primary" id="timerActionBtn" onclick="toggleTimer()">Pause</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EXERCISES = [
+            'Bench Press',
+            'Incline Dumbbell Press',
+            'Shoulder Press',
+            'Lateral Raises',
+            'Tricep Pushdowns',
+            'Overhead Tricep Extension'
+        ];
+
+        const SETS_PER_EXERCISE = 3;
+        const REST_TIME = 90; // seconds
+
+        let currentWorkout = {};
+        let timerInterval = null;
+        let timeRemaining = REST_TIME;
+        let timerRunning = false;
+
+        // Initialize
+        function init() {
+            updateDate();
+            loadLastWorkout();
+            renderExercises();
+            renderHistory();
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options);
+        }
+
+        function loadLastWorkout() {
+            const history = JSON.parse(localStorage.getItem('pushHistory') || '[]');
+            if (history.length > 0) {
+                currentWorkout = JSON.parse(JSON.stringify(history[0].workout));
+            } else {
+                // Initialize empty workout
+                EXERCISES.forEach(exercise => {
+                    currentWorkout[exercise] = Array(SETS_PER_EXERCISE).fill().map(() => ({
+                        weight: '',
+                        reps: '',
+                        completed: false
+                    }));
+                });
+            }
+        }
+
+        function renderExercises() {
+            const container = document.getElementById('exercisesContainer');
+            container.innerHTML = '';
+
+            EXERCISES.forEach(exercise => {
+                const sets = currentWorkout[exercise] || [];
+                const totalVolume = sets.reduce((sum, set) => {
+                    return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+                }, 0);
+
+                const card = document.createElement('div');
+                card.className = 'exercise-card';
+                card.innerHTML = `
+                    <div class="exercise-header">
+                        <div class="exercise-name">${exercise}</div>
+                        <div class="exercise-total">${totalVolume > 0 ? totalVolume + ' kg total' : ''}</div>
+                    </div>
+                    <div class="sets-container">
+                        ${sets.map((set, index) => `
+                            <div class="set-row">
+                                <div class="set-number">Set ${index + 1}</div>
+                                <div class="input-group">
+                                    <label class="input-label">Weight (kg)</label>
+                                    <input 
+                                        type="number" 
+                                        class="input-field" 
+                                        value="${set.weight}"
+                                        onchange="updateSet('${exercise}', ${index}, 'weight', this.value)"
+                                        step="0.5"
+                                        inputmode="decimal"
+                                    >
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Reps</label>
+                                    <input 
+                                        type="number" 
+                                        class="input-field" 
+                                        value="${set.reps}"
+                                        onchange="updateSet('${exercise}', ${index}, 'reps', this.value)"
+                                        inputmode="numeric"
+                                    >
+                                </div>
+                                <button 
+                                    class="check-btn ${set.completed ? 'completed' : ''}"
+                                    onclick="toggleSetComplete('${exercise}', ${index})"
+                                >
+                                    ${set.completed ? '✓' : ''}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateSet(exercise, setIndex, field, value) {
+            currentWorkout[exercise][setIndex][field] = value;
+            renderExercises();
+        }
+
+        function toggleSetComplete(exercise, setIndex) {
+            const set = currentWorkout[exercise][setIndex];
+            set.completed = !set.completed;
+            
+            if (set.completed && set.weight && set.reps) {
+                startTimer();
+            }
+            
+            renderExercises();
+        }
+
+        function startTimer() {
+            timeRemaining = REST_TIME;
+            timerRunning = true;
+            document.getElementById('timerModal').classList.add('active');
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                if (timerRunning) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 0) {
+                        playSound();
+                        skipTimer();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            timerRunning = !timerRunning;
+            document.getElementById('timerActionBtn').textContent = timerRunning ? 'Pause' : 'Resume';
+        }
+
+        function skipTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            document.getElementById('timerModal').classList.remove('active');
+            document.getElementById('timerActionBtn').textContent = 'Pause';
+        }
+
+        function playSound() {
+            // Vibrate on mobile
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        function saveWorkout() {
+            const history = JSON.parse(localStorage.getItem('pushHistory') || '[]');
+            
+            const newEntry = {
+                date: new Date().toISOString(),
+                workout: JSON.parse(JSON.stringify(currentWorkout))
+            };
+            
+            history.unshift(newEntry);
+            
+            // Keep last 50 workouts
+            if (history.length > 50) {
+                history.pop();
+            }
+            
+            localStorage.setItem('pushHistory', JSON.stringify(history));
+            
+            alert('Workout saved! 💪');
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            const history = JSON.parse(localStorage.getItem('pushHistory') || '[]');
+            
+            if (history.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <div>No workout history yet.<br>Complete your first session!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = history.map(entry => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString('en-GB', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-date">${dateStr}</div>
+                        <div class="history-exercises">
+                            ${EXERCISES.map(exercise => {
+                                const sets = entry.workout[exercise] || [];
+                                const completedSets = sets.filter(s => s.completed).length;
+                                const totalVolume = sets.reduce((sum, set) => {
+                                    return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+                                }, 0);
+                                
+                                return `
+                                    <div class="history-exercise">
+                                        <span>${exercise}</span>
+                                        <span>${completedSets} sets • ${totalVolume} kg</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'workout') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('workoutTab').classList.add('active');
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('historyTab').classList.add('active');
+            }
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
