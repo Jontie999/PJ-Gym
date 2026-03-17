@@ -646,7 +646,10 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBwl8mBw1EarxzMqEk_ZOJ36MLDpKMUgyI",
+                    'apiKey: "AIzaSyBwl8mBw1EarxzMqEk_ZOJ36MLDpKMUgyI",
+            apiKey: "",
+                
+                
             authDomain: "pj-gym-90c42.firebaseapp.com",
             projectId: "pj-gym-90c42",
             storageBucket: "pj-gym-90c42.firebasestorage.app",
