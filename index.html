@@ -449,18 +449,26 @@
             bottom: calc(30px + env(safe-area-inset-bottom));
             right: 20px;
             padding: 12px 24px;
-            padding: 18px 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 25px;
-            border-radius: 50px;
             font-size: 15px;
             font-weight: 600;
-            font-weight: 700;
+            border-radius: 25px;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
             z-index: 100;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-            transform: scale(0.95);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         .save-btn:active {
             transform: translateX(-50%) scale(0.95);
         }
@@ -506,7 +514,7 @@
         }
 
         .exercise-select {
-            width: 100%;
+            width: 100%%;
             padding: 12px;
             background: #0f0f0f;
             color: #fff;
@@ -515,7 +523,6 @@
             font-size: 16px;
             margin-bottom: 15px;
         }
-
 
         .settings-section {
             background: rgba(26, 26, 46, 0.6);
@@ -590,6 +597,7 @@
         <div class="header">
             <h1 onclick="openWorkoutManager()">💪 GYM TRACKER</h1>
             <div class="subtitle" id="currentDate"></div>
+            <button class="tab" onclick="switchTab('charts')">📊 Charts</button>
             <div class="sync-status" id="syncStatus">☁️ Synced</div>
         </div>
 
@@ -599,7 +607,6 @@
             <button class="tab active" onclick="switchTab('workout')">Workout</button>
             <button class="tab" onclick="switchTab('history')">History</button>
             <button class="tab" onclick="switchTab('settings')">Settings</button>
-            <button class="tab" onclick="switchTab('charts')">📊 Charts</button>
         </div>
 
         <div id="workoutTab" class="tab-content active">
@@ -610,7 +617,6 @@
         <div id="historyTab" class="tab-content">
             <div id="historyContainer"></div>
         </div>
-
         <div id="chartsTab" class="tab-content">
             <div class="charts-container">
                 <div class="chart-section">
@@ -833,63 +839,6 @@
             renderWorkoutSelector();
             renderExercises();
             await renderHistory();
-        async function loadCurrentWorkout() {
-            try {
-                updateSyncStatus('syncing', '⏳ Loading...');
-                
-                const userId = window.currentUser.uid;
-                const workout = workoutTypes[currentWorkoutId];
-                
-                // Safety check: if workout doesn't exist, reset to defaults
-                if (!workout) {
-                    console.log('Workout not found, resetting to defaults');
-                    workoutTypes = DEFAULT_WORKOUTS;
-                    currentWorkoutId = 'push';
-                    await saveWorkoutTypes();
-                    updateSyncStatus('', '☁️ Synced');
-                    return;
-                }
-
-                const workoutsRef = window.firebaseModules.collection(window.firebaseDb, `users/${userId}/workouts`);
-                const q = window.firebaseModules.query(
-                    workoutsRef,
-                    window.firebaseModules.where('workoutId', '==', currentWorkoutId),
-                    window.firebaseModules.orderBy('date', 'desc'),
-                    window.firebaseModules.limit(1)
-                );
-                
-                const querySnapshot = await window.firebaseModules.getDocs(q);
-                currentWorkout = {};
-                
-                if (!querySnapshot.empty) {
-                    const lastWorkout = querySnapshot.docs[0].data();
-                    workout.exercises.forEach(ex => {
-                        if (lastWorkout.workout[ex.name]) {
-                            currentWorkout[ex.name] = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
-                        } else {
-                            currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
-                                weight: '', reps: '', completed: false
-                            }));
-                        }
-                    });
-                } else {
-                    workout.exercises.forEach(ex => {
-                        currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
-                            weight: '', reps: '', completed: false
-                        }));
-                    });
-                }
-                
-                updateSyncStatus('', '☁️ Synced');
-            } catch (error) {
-                console.error('Error loading workout:', error);
-                updateSyncStatus('error', '⚠️ Error');
-                // Reset to safe state on error
-                workoutTypes = DEFAULT_WORKOUTS;
-                currentWorkoutId = 'push';
-            }
-        }
-
             renderSettings();
         }
 
@@ -965,7 +914,7 @@
             const addChip = document.createElement('div');
             addChip.className = 'workout-chip add';
             addChip.textContent = '+ New Workout';
-            addChip.onclick = openWorkoutModal;
+            addChip.onclick = () => openWorkoutModal();
             container.appendChild(addChip);
         }
 
@@ -993,32 +942,6 @@
             document.getElementById('workoutModal').classList.add('active');
         }
 
-        function openWorkoutModal(editId = null) {
-            editingWorkoutId = editId;
-            
-            if (editId) {
-                const workout = workoutTypes[editId];
-                
-                // Safety check: if workout doesn't exist, treat as new
-                if (!workout) {
-                    console.warn(`Workout ${editId} not found, creating new`);
-                    document.getElementById('workoutModalTitle').textContent = 'New Workout';
-                    document.getElementById('workoutNameInput').value = '';
-                    document.getElementById('workoutEmojiInput').value = '';
-                    editingWorkoutId = null;
-                } else {
-                    document.getElementById('workoutModalTitle').textContent = 'Edit Workout';
-                    document.getElementById('workoutNameInput').value = workout.name;
-                    document.getElementById('workoutEmojiInput').value = workout.emoji || '';
-                }
-            } else {
-                document.getElementById('workoutModalTitle').textContent = 'New Workout';
-                document.getElementById('workoutNameInput').value = '';
-                document.getElementById('workoutEmojiInput').value = '';
-            }
-            
-            document.getElementById('workoutModal').classList.add('active');
-        }
         function closeWorkoutModal() {
             document.getElementById('workoutModal').classList.remove('active');
             editingWorkoutId = null;
@@ -1196,8 +1119,6 @@
             }
 
             const workout = workoutTypes[currentWorkoutId];
-            
-            // Initialize exercises array if it doesn't exist
             if (!workout.exercises) {
                 workout.exercises = [];
             }
@@ -1227,22 +1148,8 @@
         }
 
         function updateSet(exercise, setIndex, field, value) {
-            // Safety check: ensure exercise exists in currentWorkout
-            if (!currentWorkout[exercise]) {
-                const workout = workoutTypes[currentWorkoutId];
-                const exerciseConfig = workout.exercises.find(ex => ex.name === exercise);
-                if (exerciseConfig) {
-                    currentWorkout[exercise] = Array(exerciseConfig.sets).fill().map(() => ({
-                        weight: '', reps: '', completed: false
-                    }));
-                }
-            }
-            
-            // Update the value
-            if (currentWorkout[exercise] && currentWorkout[exercise][setIndex]) {
-                currentWorkout[exercise][setIndex][field] = value;
-                renderExercises();
-            }
+            currentWorkout[exercise][setIndex][field] = value;
+            renderExercises();
         }
 
         function toggleSetComplete(exercise, setIndex) {
