@@ -577,7 +577,7 @@
 </head>
 <body>
     <div id="authScreen" class="auth-container">
-        <div class="auth-title">💪 Welcome to Gym Tracker 2.01</div>
+        <div class="auth-title">💪 Welcome to Gym Tracker 2.02</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
         <input type="email" id="emailInput" class="auth-input" placeholder="Email" autocomplete="email">
@@ -749,10 +749,14 @@
             document.getElementById('appScreen').style.display = 'none';
         }
 
+        window.showAuth = showAuth;
+        window.showApp = showApp;
+        window.showAuth = showAuth;
         function showApp() {
             console.log("Showing app screen");
             document.getElementById('authScreen').classList.add('hidden');
             const appScreen = document.getElementById('appScreen');
+        window.showApp = showApp;
             appScreen.classList.remove('hidden');
             appScreen.style.display = '';
             console.log("App screen display:", appScreen.style.display);
@@ -1767,22 +1771,14 @@
                     if (user) {
                         window.currentUser = user;
                         document.getElementById('userEmail').textContent = user.email;
-                        showApp();
+                        window.showApp();
                         init();
                     } else {
                         window.currentUser = null;
-                        showAuth();
+                        window.showAuth();
                     }
                 });
             } else {
                 // Firebase not ready yet, try again in 100ms
                 console.log("Firebase not ready, retrying...");
-                setTimeout(initAuthListener, 100);
-            }
-        }
-        
-        // Start trying to initialize auth listener
-        initAuthListener();
-    </script>
-</body>
-</html>
+                setTimeout(initAuthListe
