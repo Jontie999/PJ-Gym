@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>Gym Tracker</title>
+    <title>Gym Tracker v2.0</title>
     <style>
         * {
             margin: 0;
@@ -703,6 +703,7 @@
     </div>
 
     <script type="module">
+        console.log("=== GYM TRACKER v2.0 LOADING ===");
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
@@ -1762,5 +1763,4 @@
                     if (user) {
                         window.currentUser = user;
                         document.getElementById('userEmail').textContent = user.email;
-                        showApp();
-                        init(
+  
