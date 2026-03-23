@@ -576,7 +576,7 @@
     </style>
 </head>
 <body>
-    <div id="authScreen" class="auth-container">
+    <div id="authScreen" class="auth-container" style="display: none;">
         <div class="auth-title">💪 Welcome to Gym Tracker</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
@@ -778,8 +778,11 @@
         let editingWorkoutId = null;
 
         function showAuth() {
-            document.getElementById('authScreen').classList.remove('hidden');
+            const authScreen = document.getElementById('authScreen');
+            authScreen.classList.remove('hidden');
+            authScreen.style.display = '';
             document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById('appScreen').style.display = 'none';
         }
 
         function showApp() {
@@ -1399,20 +1402,25 @@
         }
 
         function switchTab(tab) {
+            console.log('Switching to tab:', tab);
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
             if (tab === 'workout') {
+                console.log('Activating workout tab');
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 document.getElementById('workoutTab').classList.add('active');
             } else if (tab === 'history') {
+                console.log('Activating history tab');
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('historyTab').classList.add('active');
                 renderHistory();
             } else if (tab === 'settings') {
+                console.log('Activating settings tab');
                 document.querySelectorAll('.tab')[2].classList.add('active');
                 document.getElementById('settingsTab').classList.add('active');
             } else if (tab === 'charts') {
+                console.log('Activating charts tab');
                 document.querySelectorAll('.tab')[3].classList.add('active');
                 document.getElementById('chartsTab').classList.add('active');
                 loadCharts();
