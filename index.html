@@ -792,6 +792,7 @@
     </script>
 
     <script>
+        console.log("=== SECOND SCRIPT LOADING ===");
         console.log("Second script loaded");
         const DEFAULT_WORKOUTS = {
             'push': {
@@ -820,13 +821,13 @@
 
 
         function toggleAuthMode() {
-        window.toggleAuthMode = toggleAuthMode;
             isSignUpMode = !isSignUpMode;
             document.getElementById('authBtnText').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
             document.getElementById('authToggleText').textContent = isSignUpMode ? 
                 'Already have an account? Sign in' : 
                 "Don't have an account? Sign up";
         }
+        window.toggleAuthMode = toggleAuthMode;
 
         async function handleAuth() {
             const email = document.getElementById('emailInput').value;
@@ -1762,5 +1763,4 @@
         function initAuthListener() {
             console.log("initAuthListener called");
             if (window.firebaseModules && window.firebaseAuth) {
-                console.log("Firebase ready, setting up auth listener");
-                window.firebaseMod
+                console.log("Firebase ready, setting 
