@@ -838,7 +838,6 @@
             await loadCurrentWorkout();
             renderWorkoutSelector();
             renderExercises();
-            await renderHistory();
             renderSettings();
         }
 
@@ -1299,12 +1298,7 @@
             try {
                 const userId = window.currentUser.uid;
                 const workoutsRef = window.firebaseModules.collection(window.firebaseDb, `users/${userId}/workouts`);
-                const q = window.firebaseModules.query(
-                    workoutsRef,
-                    window.firebaseModules.orderBy('date', 'desc')
-                );
-                
-                const querySnapshot = await window.firebaseModules.getDocs(q);
+                const querySnapshot = await window.firebaseModules.getDocs(workoutsRef);
                 
                 if (querySnapshot.empty) {
                     container.innerHTML = `
@@ -1316,11 +1310,22 @@
                     return;
                 }
                 
-                let historyHTML = '';
+                // Get all workouts and sort by date in JS (since Firebase can't sort date strings properly)
+                const workouts = [];
                 querySnapshot.forEach((doc) => {
-                    const entry = doc.data();
-                    const date = new Date(entry.date);
-                    const dateStr = date.toLocaleDateString('en-GB', { 
+                    const data = doc.data();
+                    workouts.push({
+                        ...data,
+                        dateObj: new Date(data.date)
+                    });
+                });
+                
+                // Sort by actual date object, newest first
+                workouts.sort((a, b) => b.dateObj - a.dateObj);
+                
+                let historyHTML = '';
+                workouts.forEach(entry => {
+                    const dateStr = entry.dateObj.toLocaleDateString('en-GB', { 
                         weekday: 'short', 
                         month: 'short', 
                         day: 'numeric',
