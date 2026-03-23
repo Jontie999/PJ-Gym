@@ -473,11 +473,11 @@
         }
 
         .tab-content {
-            display: none;
+            display: none !important;
         }
 
         .tab-content.active {
-            display: block;
+            display: block !important;
         }
 
         .empty-state {
@@ -786,10 +786,12 @@
         }
 
         function showApp() {
+            console.log("Showing app screen");
             document.getElementById('authScreen').classList.add('hidden');
             const appScreen = document.getElementById('appScreen');
             appScreen.classList.remove('hidden');
             appScreen.style.display = '';
+            console.log("App screen display:", appScreen.style.display);
         }
 
         function toggleAuthMode() {
@@ -1409,20 +1411,28 @@
             if (tab === 'workout') {
                 console.log('Activating workout tab');
                 document.querySelectorAll('.tab')[0].classList.add('active');
-                document.getElementById('workoutTab').classList.add('active');
+                const workoutTab = document.getElementById('workoutTab');
+                workoutTab.classList.add('active');
+                console.log('workoutTab display:', window.getComputedStyle(workoutTab).display);
             } else if (tab === 'history') {
                 console.log('Activating history tab');
                 document.querySelectorAll('.tab')[1].classList.add('active');
-                document.getElementById('historyTab').classList.add('active');
+                const historyTab = document.getElementById('historyTab');
+                historyTab.classList.add('active');
+                console.log('historyTab display:', window.getComputedStyle(historyTab).display);
                 renderHistory();
             } else if (tab === 'settings') {
                 console.log('Activating settings tab');
                 document.querySelectorAll('.tab')[2].classList.add('active');
-                document.getElementById('settingsTab').classList.add('active');
+                const settingsTab = document.getElementById('settingsTab');
+                settingsTab.classList.add('active');
+                console.log('settingsTab display:', window.getComputedStyle(settingsTab).display);
             } else if (tab === 'charts') {
                 console.log('Activating charts tab');
                 document.querySelectorAll('.tab')[3].classList.add('active');
-                document.getElementById('chartsTab').classList.add('active');
+                const chartsTab = document.getElementById('chartsTab');
+                chartsTab.classList.add('active');
+                console.log('chartsTab display:', window.getComputedStyle(chartsTab).display);
                 loadCharts();
             }
         }
@@ -1677,26 +1687,4 @@
                 if (workout.workout) {
                     Object.values(workout.workout).forEach(exercise => {
                         exercise.forEach(set => {
-                            const weight = parseFloat(set.weight) || 0;
-                            const reps = parseFloat(set.reps) || 0;
-                            totalVolume += weight * reps;
-                        });
-                    });
-                }
-                
-                return {
-                    date: new Date(workout.date),
-                    volume: totalVolume
-                };
-            });
-            
-            const labels = volumeData.map(d => 
-                d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-            );
-            const volumes = volumeData.map(d => d.volume);
-            
-            drawBarChart(canvas, volumes, labels, '#764ba2');
-        }
-    </script>
-</body>
-</html>
+                            const weight = parseFloat(
