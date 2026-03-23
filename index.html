@@ -5,631 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
     <title>Gym Tracker v2.0</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        /* Your existing styles - keep them as they are */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
             color: #ffffff;
             min-height: 100vh;
-            padding-bottom: env(safe-area-inset-bottom);
-            overflow-x: hidden;
         }
-
-        .app-container {
-            max-width: 428px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-top: max(20px, env(safe-area-inset-top));
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #2a2a3e;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-
-        .header .subtitle {
-            color: #888;
-            font-size: 14px;
-        }
-
-        .sync-status {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 4px 12px;
-            background: rgba(102, 126, 234, 0.2);
-            border-radius: 12px;
-            font-size: 12px;
-            color: #667eea;
-        }
-
-        .sync-status.syncing {
-            color: #f59e0b;
-            background: rgba(245, 158, 11, 0.2);
-        }
-
-        .sync-status.error {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.2);
-        }
-
-        .auth-container {
-            background: rgba(26, 26, 46, 0.8);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            margin: 50px auto;
-            max-width: 400px;
-        }
-
-        .auth-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .auth-subtitle {
-            color: #888;
-            margin-bottom: 30px;
-        }
-
-        .auth-input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-        }
-
-        .auth-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .auth-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .auth-btn:active {
-            transform: scale(0.98);
-        }
-
-        .auth-toggle {
-            color: #667eea;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 15px;
-        }
-
-        .workout-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding: 5px 0;
-        }
-
-        .workout-chip {
-            padding: 10px 20px;
-            background: rgba(26, 26, 46, 0.6);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 20px;
-            color: #888;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-
-        .workout-chip.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-        }
-
-        .workout-chip.add {
-            border-style: dashed;
-            color: #667eea;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 5px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            background: transparent;
-            border: none;
-            color: #888;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .exercise-card {
-            background: rgba(26, 26, 46, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .exercise-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .exercise-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #fff;
-            flex: 1;
-        }
-
-        .exercise-total {
-            font-size: 12px;
-            color: #667eea;
-            font-weight: 600;
-            margin-right: 10px;
-        }
-
-        .delete-exercise-btn {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .sets-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .set-row {
-            display: grid;
-            grid-template-columns: 40px 1fr 1fr 60px;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .set-number {
-            color: #888;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .input-label {
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-field {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 8px;
-            padding: 10px;
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
-            width: 100%;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #667eea;
-            background: rgba(0, 0, 0, 0.6);
-        }
-
-        .check-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #667eea;
-            background: transparent;
-            color: #667eea;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .check-btn.completed {
-            background: #667eea;
-            color: white;
-        }
-
-        .add-exercise-btn {
-            width: 100%;
-            padding: 15px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px dashed rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
-            color: #667eea;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .save-btn {
-            position: fixed;
-            bottom: calc(30px + env(safe-area-inset-bottom));
-            right: 20px;
-            padding: 12px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 25px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            cursor: pointer;
-            z-index: 100;
-        }
-
-        .save-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Modal Styles */
-        .timer-modal, .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .timer-modal.active, .modal-overlay.active {
-            display: flex;
-        }
-
-        .timer-content {
-            text-align: center;
-            padding: 40px;
-        }
-
-        .timer-display {
-            font-size: 80px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-        }
-
-        .timer-controls, .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .timer-btn, .modal-btn {
-            padding: 15px 30px;
-            border-radius: 12px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .timer-btn.primary, .modal-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 1;
-        }
-
-        .timer-btn.secondary, .modal-btn.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            flex: 1;
-        }
-
-        .modal {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 400px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #888;
-        }
-
-        .charts-container {
-            padding: 10px 0;
-        }
-
-        .chart-section {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .chart-section h3 {
-            color: #667eea;
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-
-        .chart-section canvas {
-            width: 100%;
-            max-height: 300px;
-        }
-
-        .exercise-select {
-            width: 100%;
-            padding: 12px;
-            background: #0f0f0f;
-            color: #fff;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
-        .settings-section {
-            background: rgba(26, 26, 46, 0.6);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-        }
-
-        .settings-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-
-        .settings-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .icon-btn {
-            padding: 8px 12px;
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 6px;
-            color: #667eea;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .danger-btn {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        .app-container { max-width: 428px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2a2a3e; }
+        .header h1 { font-size: 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+        .sync-status { display: inline-block; padding: 4px 12px; background: rgba(102, 126, 234, 0.2); border-radius: 12px; font-size: 12px; }
+        .auth-container { background: rgba(26, 26, 46, 0.8); border-radius: 16px; padding: 30px; text-align: center; margin: 50px auto; max-width: 400px; }
+        .auth-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 12px; color: white; font-size: 16px; }
+        .auth-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .auth-toggle { color: #667eea; cursor: pointer; font-size: 14px; margin-top: 15px; }
+        .workout-selector { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        .workout-chip { padding: 10px 20px; background: rgba(26, 26, 46, 0.6); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 20px; cursor: pointer; white-space: nowrap; }
+        .workout-chip.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #1a1a2e; border-radius: 12px; padding: 5px; }
+        .tab { flex: 1; padding: 12px; background: transparent; border: none; color: #888; font-weight: 600; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .exercise-card { background: rgba(26, 26, 46, 0.6); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .exercise-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .set-row { display: grid; grid-template-columns: 40px 1fr 1fr 60px; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .input-field { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px; padding: 10px; color: #fff; text-align: center; }
+        .check-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #667eea; background: transparent; color: #667eea; cursor: pointer; }
+        .check-btn.completed { background: #667eea; color: white; }
+        .add-exercise-btn { width: 100%; padding: 15px; background: rgba(102, 126, 234, 0.1); border: 2px dashed rgba(102, 126, 234, 0.3); border-radius: 12px; color: #667eea; margin-bottom: 20px; }
+        .save-btn { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 25px; color: white; font-weight: 600; cursor: pointer; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1a1a2e; border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .hidden { display: none !important; }
+        .timer-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .timer-modal.active { display: flex; }
+        .timer-display { font-size: 80px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .history-item { background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 12px; margin-bottom: 12px; }
+        .settings-section { background: rgba(26, 26, 46, 0.6); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .icon-btn { padding: 8px 12px; background: rgba(102, 126, 234, 0.2); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 6px; color: #667eea; cursor: pointer; }
+        .danger-btn { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+        canvas { max-height: 300px; width: 100%; background: #1a1a2e; border-radius: 12px; }
     </style>
 </head>
 <body>
     <div id="authScreen" class="auth-container">
-        <div class="auth-title">💪 Welcome to Gym Tracker</div>
+        <div class="auth-title">💪 Gym Tracker 2.04</div>
         <div class="auth-subtitle">Sign in to sync your workouts</div>
-        
-        <input type="email" id="emailInput" class="auth-input" placeholder="Email" autocomplete="email">
-        <input type="password" id="passwordInput" class="auth-input" placeholder="Password" autocomplete="current-password">
-        
-        <button class="auth-btn" id="authSubmitBtn">
-            <span id="authBtnText">Sign In</span>
-        </button>
-        
-        <div class="auth-toggle" id="authToggle">
-            <span id="authToggleText">Don't have an account? Sign up</span>
-        </div>
+        <input type="email" id="emailInput" class="auth-input" placeholder="Email">
+        <input type="password" id="passwordInput" class="auth-input" placeholder="Password">
+        <button class="auth-btn" id="authBtn">Sign In</button>
+        <div class="auth-toggle" id="authToggle">Don't have an account? Sign up</div>
     </div>
 
-    <div id="appScreen" class="app-container" style="display: none;">
+    <div id="appScreen" class="app-container hidden">
         <div class="header">
-            <h1 id="headerLogo">💪 GYM TRACKER</h1>
+            <h1>💪 GYM TRACKER</h1>
             <div class="subtitle" id="currentDate"></div>
             <div class="sync-status" id="syncStatus">☁️ Synced</div>
         </div>
-
         <div class="workout-selector" id="workoutSelector"></div>
-
         <div class="tabs">
             <button class="tab active" data-tab="workout">Workout</button>
             <button class="tab" data-tab="history">History</button>
-            <button class="tab" data-tab="settings">Settings</button>
             <button class="tab" data-tab="charts">📊 Charts</button>
+            <button class="tab" data-tab="settings">Settings</button>
         </div>
-
         <div id="workoutTab" class="tab-content active">
             <div id="exercisesContainer"></div>
-            <button class="add-exercise-btn" id="addExerciseTrigger">+ Add Exercise</button>
+            <button class="add-exercise-btn" id="addExerciseBtn">+ Add Exercise</button>
         </div>
-
         <div id="historyTab" class="tab-content">
             <div id="historyContainer"></div>
         </div>
-
         <div id="chartsTab" class="tab-content">
-            <div class="charts-container">
-                <div class="chart-section">
-                    <h3>Workout Frequency</h3>
-                    <canvas id="frequencyChart"></canvas>
-                </div>
-                <div class="chart-section">
-                    <h3>Exercise Progress</h3>
-                    <select id="exerciseSelect" class="exercise-select">
-                        <option value="">Select Exercise...</option>
-                    </select>
-                    <canvas id="exerciseChart"></canvas>
-                </div>
-                <div class="chart-section">
-                    <h3>Total Volume by Workout</h3>
-                    <canvas id="volumeChart"></canvas>
-                </div>
-            </div>
+            <canvas id="frequencyChart" width="400" height="300"></canvas>
+            <select id="exerciseSelect"></select>
+            <canvas id="exerciseChart" width="400" height="300"></canvas>
+            <canvas id="volumeChart" width="400" height="300"></canvas>
         </div>
-
         <div id="settingsTab" class="tab-content">
-            <div class="settings-section">
-                <div class="settings-title">Workouts</div>
-                <div id="workoutsList"></div>
-            </div>
-            <div class="settings-section">
-                <div class="settings-title">Account</div>
-                <div class="settings-item">
-                    <div>
-                        <div style="color: #fff; font-size: 16px;">Email</div>
-                        <div style="color: #888; font-size: 14px;" id="userEmail"></div>
-                    </div>
-                    <button class="icon-btn danger-btn" id="signOutBtn">Sign Out</button>
-                </div>
-            </div>
+            <div id="workoutsList"></div>
+            <div>Email: <span id="userEmail"></span></div>
+            <button class="icon-btn danger-btn" id="logoutBtn">Sign Out</button>
         </div>
-
         <button class="save-btn" id="saveWorkoutBtn">Save Workout</button>
     </div>
 
     <div class="timer-modal" id="timerModal">
-        <div class="timer-content">
-            <div class="timer-display" id="timerDisplay">90</div>
-            <div class="timer-controls">
-                <button class="timer-btn secondary" id="skipTimerBtn">Skip</button>
-                <button class="timer-btn primary" id="timerActionBtn">Pause</button>
-            </div>
-        </div>
+        <div class="timer-display" id="timerDisplay">90</div>
+        <button id="skipTimerBtn">Skip</button>
+        <button id="pauseTimerBtn">Pause</button>
     </div>
 
     <div class="modal-overlay" id="workoutModal">
         <div class="modal">
-            <div class="modal-title" id="workoutModalTitle">New Workout</div>
-            <input type="text" id="workoutNameInput" class="modal-input" placeholder="Workout name">
-            <input type="text" id="workoutEmojiInput" class="modal-input" placeholder="Emoji (optional)" maxlength="2">
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" id="closeWorkoutModalBtn">Cancel</button>
-                <button class="modal-btn primary" id="saveWorkoutTypeBtn">Save</button>
-            </div>
+            <input type="text" id="workoutNameInput" placeholder="Workout name">
+            <button id="saveWorkoutTypeBtn">Save</button>
+            <button id="closeWorkoutModalBtn">Cancel</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="addExerciseModal">
         <div class="modal">
-            <div class="modal-title">Add Exercise</div>
-            <input type="text" id="exerciseNameInput" class="modal-input" placeholder="Exercise name">
-            <input type="number" id="exerciseSetsInput" class="modal-input" placeholder="Number of sets" value="3">
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" id="closeAddExerciseBtn">Cancel</button>
-                <button class="modal-btn primary" id="addExerciseBtn">Add</button>
-            </div>
+            <input type="text" id="exerciseNameInput" placeholder="Exercise name">
+            <input type="number" id="exerciseSetsInput" placeholder="Sets" value="3">
+            <button id="confirmAddExerciseBtn">Add</button>
+            <button id="closeAddExerciseBtn">Cancel</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+            }
+        }
+    </script>
 
-        // Firebase Config
+    <script type="module">
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, limit, where } from 'firebase/firestore';
+
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyDUVo0BGNGk5mhb-NMPKf1FxdLSij7ssms",
             authDomain: "pj-gym-90c42.firebaseapp.com",
@@ -639,241 +147,452 @@
             appId: "1:1070541610883:web:a3d5c9107accf23396a0b6"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Global State
+        // Global state
         let currentUser = null;
         let isSignUpMode = false;
-        let workoutTypes = {};
+        let workoutTypes = {
+            'push': { name: 'Push', emoji: '💪', exercises: [] }
+        };
         let currentWorkoutId = 'push';
         let currentWorkout = {};
-        let timerInterval = null;
-        let timeRemaining = 90;
-        let timerRunning = false;
-        let editingWorkoutId = null;
 
-        const DEFAULT_WORKOUTS = {
-            'push': {
-                name: 'Push',
-                emoji: '💪',
-                exercises: [
-                    { name: 'Bench Press', sets: 3 },
-                    { name: 'Shoulder Press', sets: 3 }
-                ]
-            }
-        };
+        // DOM Elements
+        const authScreen = document.getElementById('authScreen');
+        const appScreen = document.getElementById('appScreen');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const authBtn = document.getElementById('authBtn');
+        const authToggle = document.getElementById('authToggle');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
+        const addExerciseBtn = document.getElementById('addExerciseBtn');
+        const userEmailSpan = document.getElementById('userEmail');
 
-        // UI Helpers
-        const showAuth = () => {
-            document.getElementById('authScreen').style.display = 'block';
-            document.getElementById('appScreen').style.display = 'none';
-        };
+        // Helper functions
+        function showAuth() {
+            authScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+        }
 
-        const showApp = () => {
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-        };
+        function showApp() {
+            authScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            init();
+        }
 
-        // Auth Logic
+        function updateSyncStatus(status, message) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = 'sync-status';
+            if (status === 'error') statusEl.classList.add('error');
+            statusEl.textContent = message;
+        }
+
+        // Auth handlers
         async function handleAuth() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            if (!email || !password) return alert('Enter credentials');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
 
             try {
-                if (isSignUpMode) await createUserWithEmailAndPassword(auth, email, password);
-                else await signInWithEmailAndPassword(auth, email, password);
-            } catch (e) { alert(e.message); }
-        }
-
-        // Workout Logic
-        async function loadData() {
-            updateDate();
-            const userId = currentUser.uid;
-            const typesRef = doc(db, `users/${userId}/settings/workoutTypes`);
-            const snap = await getDoc(typesRef);
-            
-            workoutTypes = snap.exists() ? snap.data().types : DEFAULT_WORKOUTS;
-            if (!snap.exists()) await setDoc(typesRef, { types: workoutTypes });
-            
-            currentWorkoutId = Object.keys(workoutTypes)[0];
-            await loadCurrentWorkout();
-            renderAll();
-        }
-
-        async function loadCurrentWorkout() {
-            const userId = currentUser.uid;
-            const workout = workoutTypes[currentWorkoutId];
-            currentWorkout = {};
-            
-            if (workout && workout.exercises) {
-                workout.exercises.forEach(ex => {
-                    currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
-                        weight: '', reps: '', completed: false
-                    }));
-                });
+                if (isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    alert('Account created! Please sign in.');
+                    isSignUpMode = false;
+                    authBtn.textContent = 'Sign In';
+                    authToggle.textContent = "Don't have an account? Sign up";
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                alert(error.message);
             }
         }
 
-        function renderAll() {
-            renderWorkoutSelector();
-            renderExercises();
-            renderSettings();
+        async function handleLogout() {
+            if (confirm('Sign out?')) {
+                await signOut(auth);
+            }
         }
 
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            authBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
+            authToggle.textContent = isSignUpMode 
+                ? 'Already have an account? Sign in' 
+                : "Don't have an account? Sign up";
+        }
+
+        // Load workout types from Firebase
+        async function loadWorkoutTypes() {
+            try {
+                const workoutTypesRef = doc(db, `users/${currentUser.uid}/settings/workoutTypes`);
+                const docSnap = await getDoc(workoutTypesRef);
+                
+                if (docSnap.exists()) {
+                    workoutTypes = docSnap.data().types;
+                } else {
+                    workoutTypes = {
+                        'push': { name: 'Push', emoji: '💪', exercises: [] }
+                    };
+                    await saveWorkoutTypes();
+                }
+
+                if (!workoutTypes[currentWorkoutId]) {
+                    currentWorkoutId = Object.keys(workoutTypes)[0];
+                }
+            } catch (error) {
+                console.error('Error loading workout types:', error);
+                workoutTypes = { 'push': { name: 'Push', emoji: '💪', exercises: [] } };
+            }
+        }
+
+        async function saveWorkoutTypes() {
+            try {
+                const workoutTypesRef = doc(db, `users/${currentUser.uid}/settings/workoutTypes`);
+                await setDoc(workoutTypesRef, { types: workoutTypes });
+            } catch (error) {
+                console.error('Error saving workout types:', error);
+            }
+        }
+
+        // Load last workout data
+        async function loadCurrentWorkout() {
+            const workout = workoutTypes[currentWorkoutId];
+            if (!workout || !workout.exercises) {
+                currentWorkout = {};
+                return;
+            }
+
+            try {
+                const workoutsRef = collection(db, `users/${currentUser.uid}/workouts`);
+                const q = query(
+                    workoutsRef,
+                    where('workoutId', '==', currentWorkoutId),
+                    orderBy('date', 'desc'),
+                    limit(1)
+                );
+                const querySnapshot = await getDocs(q);
+                currentWorkout = {};
+
+                if (!querySnapshot.empty) {
+                    const lastWorkout = querySnapshot.docs[0].data();
+                    workout.exercises.forEach(ex => {
+                        if (lastWorkout.workout && lastWorkout.workout[ex.name]) {
+                            currentWorkout[ex.name] = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
+                        } else {
+                            currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
+                                weight: '', reps: '', completed: false
+                            }));
+                        }
+                    });
+                } else {
+                    workout.exercises.forEach(ex => {
+                        currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
+                            weight: '', reps: '', completed: false
+                        }));
+                    });
+                }
+                updateSyncStatus('', '☁️ Synced');
+            } catch (error) {
+                console.error('Error loading workout:', error);
+                updateSyncStatus('error', '⚠️ Error');
+            }
+        }
+
+        // Render functions
         function renderWorkoutSelector() {
             const container = document.getElementById('workoutSelector');
             container.innerHTML = '';
+            
             Object.keys(workoutTypes).forEach(id => {
+                const workout = workoutTypes[id];
                 const chip = document.createElement('div');
                 chip.className = `workout-chip ${id === currentWorkoutId ? 'active' : ''}`;
-                chip.textContent = `${workoutTypes[id].emoji || '💪'} ${workoutTypes[id].name}`;
-                chip.onclick = async () => {
-                    currentWorkoutId = id;
-                    await loadCurrentWorkout();
-                    renderAll();
-                };
+                chip.textContent = `${workout.emoji || '💪'} ${workout.name}`;
+                chip.onclick = () => selectWorkout(id);
                 container.appendChild(chip);
             });
+
+            const addChip = document.createElement('div');
+            addChip.className = 'workout-chip';
+            addChip.textContent = '+ New Workout';
+            addChip.onclick = () => openWorkoutModal();
+            container.appendChild(addChip);
+        }
+
+        async function selectWorkout(id) {
+            currentWorkoutId = id;
+            await loadCurrentWorkout();
+            renderWorkoutSelector();
+            renderExercises();
         }
 
         function renderExercises() {
             const container = document.getElementById('exercisesContainer');
             container.innerHTML = '';
+
             const workout = workoutTypes[currentWorkoutId];
-            
             if (!workout || !workout.exercises || workout.exercises.length === 0) {
-                container.innerHTML = '<div class="empty-state">No exercises found.</div>';
+                container.innerHTML = '<div class="empty-state">No exercises. Add your first exercise!</div>';
                 return;
             }
 
-            workout.exercises.forEach(ex => {
+            workout.exercises.forEach(exercise => {
+                const sets = currentWorkout[exercise.name] || [];
                 const card = document.createElement('div');
                 card.className = 'exercise-card';
-                card.innerHTML = `<div class="exercise-header"><div class="exercise-name">${ex.name}</div></div>`;
-                
-                const setsCont = document.createElement('div');
-                setsCont.className = 'sets-container';
-                
-                (currentWorkout[ex.name] || []).forEach((set, idx) => {
-                    const row = document.createElement('div');
-                    row.className = 'set-row';
-                    row.innerHTML = `
-                        <div class="set-number">${idx + 1}</div>
-                        <div class="input-group"><input type="number" class="input-field" placeholder="kg" value="${set.weight}"></div>
-                        <div class="input-group"><input type="number" class="input-field" placeholder="reps" value="${set.reps}"></div>
-                        <button class="check-btn ${set.completed ? 'completed' : ''}">${set.completed ? '✓' : ''}</button>
-                    `;
-                    
-                    const inputs = row.querySelectorAll('input');
-                    inputs[0].oninput = (e) => set.weight = e.target.value;
-                    inputs[1].oninput = (e) => set.reps = e.target.value;
-                    row.querySelector('.check-btn').onclick = () => {
-                        set.completed = !set.completed;
-                        if (set.completed) startTimer();
-                        renderExercises();
-                    };
-                    
-                    setsCont.appendChild(row);
-                });
-                card.appendChild(setsCont);
+                card.innerHTML = `
+                    <div class="exercise-header">
+                        <strong>${exercise.name}</strong>
+                        <button class="icon-btn danger-btn" onclick="window.deleteExercise('${exercise.name}')">✕</button>
+                    </div>
+                    ${sets.map((set, index) => `
+                        <div class="set-row">
+                            <span>Set ${index + 1}</span>
+                            <input type="number" class="input-field" value="${set.weight}" placeholder="kg" onchange="window.updateSet('${exercise.name}', ${index}, 'weight', this.value)">
+                            <input type="number" class="input-field" value="${set.reps}" placeholder="reps" onchange="window.updateSet('${exercise.name}', ${index}, 'reps', this.value)">
+                            <button class="check-btn ${set.completed ? 'completed' : ''}" onclick="window.toggleSetComplete('${exercise.name}', ${index})">${set.completed ? '✓' : ''}</button>
+                        </div>
+                    `).join('')}
+                `;
                 container.appendChild(card);
             });
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeRemaining = 90;
-            timerRunning = true;
-            document.getElementById('timerModal').classList.add('active');
-            updateTimerDisplay();
-            timerInterval = setInterval(() => {
-                if (timerRunning) {
-                    timeRemaining--;
-                    updateTimerDisplay();
-                    if (timeRemaining <= 0) {
-                        clearInterval(timerInterval);
-                        document.getElementById('timerModal').classList.remove('active');
-                    }
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            const m = Math.floor(timeRemaining / 60);
-            const s = timeRemaining % 60;
-            document.getElementById('timerDisplay').textContent = `${m}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function updateDate() {
-            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-        }
-
-        async function saveWorkout() {
-            const userId = currentUser.uid;
-            const logRef = doc(db, `users/${userId}/workouts/${Date.now()}`);
-            await setDoc(logRef, {
-                date: new Date().toISOString(),
-                workoutId: currentWorkoutId,
-                workoutName: workoutTypes[currentWorkoutId].name,
-                workout: currentWorkout
-            });
-            alert('Workout Saved!');
-        }
-
         function renderSettings() {
-            const list = document.getElementById('workoutsList');
-            list.innerHTML = '';
+            const container = document.getElementById('workoutsList');
+            container.innerHTML = '';
             Object.keys(workoutTypes).forEach(id => {
-                const item = document.createElement('div');
-                item.className = 'settings-item';
-                item.innerHTML = `<div>${workoutTypes[id].name}</div><button class="icon-btn danger-btn">Delete</button>`;
-                item.querySelector('button').onclick = async () => {
-                    delete workoutTypes[id];
-                    await setDoc(doc(db, `users/${currentUser.uid}/settings/workoutTypes`), { types: workoutTypes });
-                    renderAll();
-                };
-                list.appendChild(item);
+                const w = workoutTypes[id];
+                container.innerHTML += `
+                    <div class="settings-item">
+                        <div>${w.emoji} ${w.name} (${w.exercises.length} exercises)</div>
+                        <button class="icon-btn danger-btn" onclick="window.deleteWorkout('${id}')">Delete</button>
+                    </div>
+                `;
             });
         }
 
-        // Attach to window for HTML access
-        window.handleLogout = () => signOut(auth);
+        async function renderHistory() {
+            const container = document.getElementById('historyContainer');
+            try {
+                const workoutsRef = collection(db, `users/${currentUser.uid}/workouts`);
+                const querySnapshot = await getDocs(workoutsRef);
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state">No history yet</div>';
+                    return;
+                }
+                
+                const workouts = [];
+                querySnapshot.forEach(doc => workouts.push({ id: doc.id, ...doc.data() }));
+                workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                container.innerHTML = workouts.map(entry => `
+                    <div class="history-item">
+                        <div>${new Date(entry.date).toLocaleDateString()} - ${entry.workoutName}</div>
+                        <div>${Object.keys(entry.workout || {}).length} exercises</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state">Failed to load history</div>';
+            }
+        }
 
-        // Event Listeners
-        document.getElementById('authSubmitBtn').onclick = handleAuth;
-        document.getElementById('authToggle').onclick = () => {
-            isSignUpMode = !isSignUpMode;
-            document.getElementById('authBtnText').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
-            document.getElementById('authToggleText').textContent = isSignUpMode ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
-        };
-        document.getElementById('signOutBtn').onclick = () => signOut(auth);
-        document.getElementById('saveWorkoutBtn').onclick = saveWorkout;
-        document.getElementById('skipTimerBtn').onclick = () => {
-            clearInterval(timerInterval);
-            document.getElementById('timerModal').classList.remove('active');
-        };
-        
-        document.querySelectorAll('.tab').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`${btn.dataset.tab}Tab`).classList.add('active');
-            };
-        });
+        // Save workout
+        async function saveWorkout() {
+            try {
+                updateSyncStatus('syncing', '⏳ Saving...');
+                const workoutId = Date.now().toString();
+                const workoutRef = doc(db, `users/${currentUser.uid}/workouts/${workoutId}`);
+                await setDoc(workoutRef, {
+                    date: new Date().toISOString(),
+                    workoutId: currentWorkoutId,
+                    workoutName: workoutTypes[currentWorkoutId].name,
+                    workout: JSON.parse(JSON.stringify(currentWorkout))
+                });
+                updateSyncStatus('', '☁️ Synced');
+                alert('Workout saved! 💪');
+                renderHistory();
+            } catch (error) {
+                updateSyncStatus('error', '⚠️ Save failed');
+                alert('Failed to save');
+            }
+        }
 
-        onAuthStateChanged(auth, user => {
+        // Exercise actions
+        function openAddExercise() {
+            document.getElementById('addExerciseModal').classList.add('active');
+        }
+
+        function closeAddExercise() {
+            document.getElementById('addExerciseModal').classList.remove('active');
+        }
+
+        async function addExercise() {
+            const name = document.getElementById('exerciseNameInput').value.trim();
+            const sets = parseInt(document.getElementById('exerciseSetsInput').value) || 3;
+            
+            if (!name) return alert('Enter exercise name');
+            
+            const workout = workoutTypes[currentWorkoutId];
+            if (!workout.exercises) workout.exercises = [];
+            if (workout.exercises.some(ex => ex.name === name)) return alert('Exercise exists');
+            
+            workout.exercises.push({ name, sets });
+            currentWorkout[name] = Array(sets).fill().map(() => ({ weight: '', reps: '', completed: false }));
+            
+            await saveWorkoutTypes();
+            renderExercises();
+            closeAddExercise();
+        }
+
+        async function deleteExercise(name) {
+            if (!confirm(`Remove ${name}?`)) return;
+            const workout = workoutTypes[currentWorkoutId];
+            workout.exercises = workout.exercises.filter(ex => ex.name !== name);
+            delete currentWorkout[name];
+            await saveWorkoutTypes();
+            renderExercises();
+        }
+
+        function updateSet(exercise, setIndex, field, value) {
+            if (currentWorkout[exercise] && currentWorkout[exercise][setIndex]) {
+                currentWorkout[exercise][setIndex][field] = value;
+                renderExercises();
+            }
+        }
+
+        function toggleSetComplete(exercise, setIndex) {
+            if (currentWorkout[exercise] && currentWorkout[exercise][setIndex]) {
+                currentWorkout[exercise][setIndex].completed = !currentWorkout[exercise][setIndex].completed;
+                renderExercises();
+            }
+        }
+
+        // Workout management
+        function openWorkoutModal() {
+            document.getElementById('workoutModal').classList.add('active');
+        }
+
+        function closeWorkoutModal() {
+            document.getElementById('workoutModal').classList.remove('active');
+        }
+
+        async function saveWorkoutType() {
+            const name = document.getElementById('workoutNameInput').value.trim();
+            if (!name) return alert('Enter name');
+            const id = name.toLowerCase().replace(/\s+/g, '-');
+            if (!workoutTypes[id]) {
+                workoutTypes[id] = { name, emoji: '💪', exercises: [] };
+            }
+            await saveWorkoutTypes();
+            renderWorkoutSelector();
+            renderSettings();
+            closeWorkoutModal();
+        }
+
+        async function deleteWorkout(id) {
+            if (Object.keys(workoutTypes).length === 1) return alert('Must have at least one workout');
+            if (!confirm(`Delete ${workoutTypes[id]?.name}?`)) return;
+            delete workoutTypes[id];
+            await saveWorkoutTypes();
+            if (currentWorkoutId === id) {
+                currentWorkoutId = Object.keys(workoutTypes)[0];
+                await loadCurrentWorkout();
+            }
+            renderWorkoutSelector();
+            renderExercises();
+            renderSettings();
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const activeTab = Array.from(document.querySelectorAll('.tab')).find(t => t.textContent.toLowerCase().includes(tabName.toLowerCase()));
+            if (activeTab) activeTab.classList.add('active');
+            
+            const tabContent = document.getElementById(`${tabName}Tab`);
+            if (tabContent) tabContent.classList.add('active');
+            
+            if (tabName === 'history') renderHistory();
+            if (tabName === 'charts') loadCharts();
+        }
+
+        // Simple charts
+        async function loadCharts() {
+            try {
+                const workoutsRef = collection(db, `users/${currentUser.uid}/workouts`);
+                const querySnapshot = await getDocs(workoutsRef);
+                const workouts = [];
+                querySnapshot.forEach(doc => workouts.push(doc.data()));
+                
+                const canvas = document.getElementById('frequencyChart');
+                if (canvas) {
+                    canvas.width = 400;
+                    canvas.height = 300;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#667eea';
+                    ctx.fillRect(20, 20, 50, 200);
+                }
+            } catch (error) {
+                console.error('Chart error:', error);
+            }
+        }
+
+        // Initialize app
+        async function init() {
+            await loadWorkoutTypes();
+            await loadCurrentWorkout();
+            renderWorkoutSelector();
+            renderExercises();
+            renderSettings();
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+            if (userEmailSpan) userEmailSpan.textContent = currentUser?.email || '';
+        }
+
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('userEmail').textContent = user.email;
                 showApp();
-                loadData();
             } else {
+                currentUser = null;
                 showAuth();
             }
         });
+
+        // Event listeners
+        authBtn.addEventListener('click', handleAuth);
+        authToggle.addEventListener('click', toggleAuthMode);
+        logoutBtn?.addEventListener('click', handleLogout);
+        saveWorkoutBtn?.addEventListener('click', saveWorkout);
+        addExerciseBtn?.addEventListener('click', openAddExercise);
+        document.getElementById('confirmAddExerciseBtn')?.addEventListener('click', addExercise);
+        document.getElementById('closeAddExerciseBtn')?.addEventListener('click', closeAddExercise);
+        document.getElementById('saveWorkoutTypeBtn')?.addEventListener('click', saveWorkoutType);
+        document.getElementById('closeWorkoutModalBtn')?.addEventListener('click', closeWorkoutModal);
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        // Expose functions to global for inline onclick handlers
+        window.deleteExercise = deleteExercise;
+        window.updateSet = updateSet;
+        window.toggleSetComplete = toggleSetComplete;
+        window.deleteWorkout = deleteWorkout;
     </script>
 </body>
 </html>
