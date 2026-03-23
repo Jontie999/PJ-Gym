@@ -1756,17 +1756,11 @@
         window.updateExerciseChart = updateExerciseChart;
 
         // Initialize auth state listener after all functions are defined
-        window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
-            if (user) {
-                window.currentUser = user;
-                document.getElementById('userEmail').textContent = user.email;
-                showApp();
-                init();
-            } else {
-                window.currentUser = null;
-                showAuth();
-            }
-        });
-    </script>
-</body>
-</html>
+        function initAuthListener() {
+            if (window.firebaseModules && window.firebaseAuth) {
+                window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+                    if (user) {
+                        window.currentUser = user;
+                        document.getElementById('userEmail').textContent = user.email;
+                        showApp();
+                        init(
