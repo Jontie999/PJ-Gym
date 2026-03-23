@@ -765,9 +765,42 @@
                 showAuth();
             }
         });
+
+        let isSignUpMode = false;
+        
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('authBtnText').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
+            document.getElementById('authToggleText').textContent = isSignUpMode ? 
+                'Already have an account? Sign in' : 
+                "Don't have an account? Sign up";
+        }
+        window.toggleAuthMode = toggleAuthMode;
+
+        async function handleAuth() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
+            try {
+                if (isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        window.handleAuth = handleAuth;
     </script>
 
     <script>
+        console.log("Second script loaded");
         const DEFAULT_WORKOUTS = {
             'push': {
                 name: 'Push',
@@ -795,6 +828,7 @@
 
 
         function toggleAuthMode() {
+        window.toggleAuthMode = toggleAuthMode;
             isSignUpMode = !isSignUpMode;
             document.getElementById('authBtnText').textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
             document.getElementById('authToggleText').textContent = isSignUpMode ? 
@@ -825,8 +859,10 @@
                 alert(error.message);
             }
         }
+        window.handleAuth = handleAuth;
 
         async function handleLogout() {
+        window.handleLogout = handleLogout;
             if (confirm('Are you sure you want to sign out?')) {
                 await window.firebaseModules.signOut(window.firebaseAuth);
             }
@@ -1655,36 +1691,4 @@
             });
             
             const canvas = document.getElementById('exerciseChart');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 300;
-            
-            const dateMap = {};
-            exerciseData.forEach(d => {
-                const dateKey = d.date.toISOString().split('T')[0];
-                if (!dateMap[dateKey] || d.weight > dateMap[dateKey]) {
-                    dateMap[dateKey] = d.weight;
-                }
-            });
-            
-            const sortedDates = Object.keys(dateMap).sort().slice(-20);
-            const weights = sortedDates.map(date => dateMap[date]);
-            const labels = sortedDates.map(date => {
-                const d = new Date(date);
-                return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-            });
-            
-            drawLineChart(canvas, weights, labels, '#764ba2');
-        }
-
-        function renderVolumeChart(workouts) {
-            const canvas = document.getElementById('volumeChart');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 300;
-            
-            const volumeData = workouts.slice(0, 20).reverse().map(workout => {
-                let totalVolume = 0;
-                
-                if (workout.workout) {
-                    Object.values(workout.workout).forEach(exercise => {
-                        exercise.forEach(set => {
-                            const weight = parseFloat(
+            canvas.width = 
