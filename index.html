@@ -738,6 +738,22 @@
             where
         };
 
+        function showAuth() {
+            const authScreen = document.getElementById('authScreen');
+            authScreen.classList.remove('hidden');
+            authScreen.style.display = '';
+            document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById('appScreen').style.display = 'none';
+        }
+
+        function showApp() {
+            console.log("Showing app screen");
+            document.getElementById('authScreen').classList.add('hidden');
+            const appScreen = document.getElementById('appScreen');
+            appScreen.classList.remove('hidden');
+            appScreen.style.display = '';
+            console.log("App screen display:", appScreen.style.display);
+        }
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 window.currentUser = user;
@@ -777,22 +793,6 @@
         let isSignUpMode = false;
         let editingWorkoutId = null;
 
-        function showAuth() {
-            const authScreen = document.getElementById('authScreen');
-            authScreen.classList.remove('hidden');
-            authScreen.style.display = '';
-            document.getElementById('appScreen').classList.add('hidden');
-            document.getElementById('appScreen').style.display = 'none';
-        }
-
-        function showApp() {
-            console.log("Showing app screen");
-            document.getElementById('authScreen').classList.add('hidden');
-            const appScreen = document.getElementById('appScreen');
-            appScreen.classList.remove('hidden');
-            appScreen.style.display = '';
-            console.log("App screen display:", appScreen.style.display);
-        }
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
