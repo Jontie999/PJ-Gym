@@ -754,17 +754,6 @@
             appScreen.style.display = '';
             console.log("App screen display:", appScreen.style.display);
         }
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.currentUser = user;
-                document.getElementById('userEmail').textContent = user.email;
-                showApp();
-                init();
-            } else {
-                window.currentUser = null;
-                showAuth();
-            }
-        });
 
         let isSignUpMode = false;
         
@@ -884,6 +873,7 @@
             await loadCurrentWorkout();
             renderWorkoutSelector();
             renderExercises();
+        window.init = init;
             renderSettings();
         }
 
@@ -1691,4 +1681,92 @@
             });
             
             const canvas = document.getElementById('exerciseChart');
-            canvas.width = 
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            const dateMap = {};
+            exerciseData.forEach(d => {
+                const dateKey = d.date.toISOString().split('T')[0];
+                if (!dateMap[dateKey] || d.weight > dateMap[dateKey]) {
+                    dateMap[dateKey] = d.weight;
+                }
+            });
+            
+            const sortedDates = Object.keys(dateMap).sort().slice(-20);
+            const weights = sortedDates.map(date => dateMap[date]);
+            const labels = sortedDates.map(date => {
+                const d = new Date(date);
+                return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            });
+            
+            drawLineChart(canvas, weights, labels, '#764ba2');
+        }
+
+        function renderVolumeChart(workouts) {
+            const canvas = document.getElementById('volumeChart');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+            
+            const volumeData = workouts.slice(0, 20).reverse().map(workout => {
+                let totalVolume = 0;
+                
+                if (workout.workout) {
+                    Object.values(workout.workout).forEach(exercise => {
+                        exercise.forEach(set => {
+                            const weight = parseFloat(set.weight) || 0;
+                            const reps = parseFloat(set.reps) || 0;
+                            totalVolume += weight * reps;
+                        });
+                    });
+                }
+                
+                return {
+                    date: new Date(workout.date),
+                    volume: totalVolume
+                };
+            });
+            
+            const labels = volumeData.map(d => 
+                d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+            );
+            const volumes = volumeData.map(d => d.volume);
+            
+            drawBarChart(canvas, volumes, labels, '#764ba2');
+        }
+
+        // Expose functions globally for onclick handlers
+        window.handleAuth = handleAuth;
+        window.toggleAuthMode = toggleAuthMode;
+        window.handleLogout = handleLogout;
+        window.switchTab = switchTab;
+        window.openWorkoutManager = openWorkoutManager;
+        window.closeWorkoutManager = closeWorkoutManager;
+        window.openWorkoutModal = openWorkoutModal;
+        window.closeWorkoutModal = closeWorkoutModal;
+        window.saveWorkoutType = saveWorkoutType;
+        window.deleteWorkout = deleteWorkout;
+        window.openAddExercise = openAddExercise;
+        window.closeAddExercise = closeAddExercise;
+        window.addExercise = addExercise;
+        window.deleteExercise = deleteExercise;
+        window.updateSet = updateSet;
+        window.toggleSetComplete = toggleSetComplete;
+        window.saveWorkout = saveWorkout;
+        window.skipTimer = skipTimer;
+        window.updateExerciseChart = updateExerciseChart;
+
+        // Initialize auth state listener after all functions are defined
+        window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('userEmail').textContent = user.email;
+                showApp();
+                init();
+            } else {
+                window.currentUser = null;
+                showAuth();
+            }
+        });
+    </script>
+</body>
+</html>
