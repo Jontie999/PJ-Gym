@@ -576,7 +576,7 @@
     </style>
 </head>
 <body>
-    <div id="authScreen" class="auth-container" style="display: none;">
+    <div id="authScreen" class="auth-container">
         <div class="auth-title">💪 Welcome to Gym Tracker</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
@@ -704,6 +704,7 @@
 
     <script type="module">
         console.log("=== GYM TRACKER v2.0 LOADING ===");
+        console.log("Firebase modules importing...");
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
@@ -722,6 +723,7 @@
         const db = getFirestore(app);
 
         window.firebaseAuth = auth;
+        console.log("Firebase initialized, auth:", !!auth, "db:", !!db);
         window.firebaseDb = db;
         window.firebaseModules = {
             createUserWithEmailAndPassword,
@@ -1758,9 +1760,7 @@
 
         // Initialize auth state listener after all functions are defined
         function initAuthListener() {
+            console.log("initAuthListener called");
             if (window.firebaseModules && window.firebaseAuth) {
-                window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
-                    if (user) {
-                        window.currentUser = user;
-                        document.getElementById('userEmail').textContent = user.email;
-  
+                console.log("Firebase ready, setting up auth listener");
+                window.firebaseMod
