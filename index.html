@@ -577,7 +577,7 @@
 </head>
 <body>
     <div id="authScreen" class="auth-container">
-        <div class="auth-title">💪 Welcome to Gym Tracker 2.02</div>
+        <div class="auth-title">💪 Welcome to Gym Tracker 2.03</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
         <input type="email" id="emailInput" class="auth-input" placeholder="Email" autocomplete="email">
@@ -1768,9 +1768,11 @@
             if (window.firebaseModules && window.firebaseAuth) {
                 console.log("Firebase ready, setting up auth listener");
                 window.firebaseModules.onAuthStateChanged(window.firebaseAuth, (user) => {
+                    console.log("Auth state changed, user:", !!user);
                     if (user) {
                         window.currentUser = user;
                         document.getElementById('userEmail').textContent = user.email;
+                        console.log("User logged in, calling showApp");
                         window.showApp();
                         init();
                     } else {
@@ -1779,6 +1781,4 @@
                     }
                 });
             } else {
-                // Firebase not ready yet, try again in 100ms
-                console.log("Firebase not ready, retrying...");
-                setTimeout(initAuthListe
+                // Fireb
