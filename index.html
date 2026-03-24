@@ -232,6 +232,22 @@
             cursor: pointer;
         }
 
+        .rest-time-badge {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+
+        .rest-time-badge:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
         .sets-container {
             display: flex;
             flex-direction: column;
@@ -686,12 +702,13 @@
 
     <div class="modal-overlay" id="addExerciseModal">
         <div class="modal">
-            <div class="modal-title">Add Exercise</div>
+            <div class="modal-title" id="addExerciseModalTitle">Add Exercise</div>
             <input type="text" id="exerciseNameInput" class="modal-input" placeholder="Exercise name">
             <input type="number" id="exerciseSetsInput" class="modal-input" placeholder="Number of sets" value="3" min="1" max="10">
+            <input type="number" id="exerciseRestTimeInput" class="modal-input" placeholder="Rest time (seconds, leave blank to use workout default)" min="10" max="600" aria-label="Rest time per set in seconds (optional)">
             <div class="modal-buttons">
                 <button class="modal-btn secondary" onclick="closeAddExercise()">Cancel</button>
-                <button class="modal-btn primary" onclick="addExercise()">Add</button>
+                <button class="modal-btn primary" id="addExerciseSaveBtn" onclick="saveExercise()">Add</button>
             </div>
         </div>
     </div>
@@ -771,6 +788,7 @@
         let timerRunning = false;
         let isSignUpMode = false;
         let editingWorkoutId = null;
+        let editingExerciseName = null;
 
         function showAuth() {
             document.getElementById('authScreen').classList.remove('hidden');
@@ -905,10 +923,19 @@
                 if (!querySnapshot.empty) {
                     const lastWorkout = querySnapshot.docs[0].data();
                     workout.exercises.forEach(ex => {
-                        if (lastWorkout.workout && lastWorkout.workout[ex.name]) {
-                            const sets = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
-                            sets.forEach(set => { set.completed = false; });
-                            currentWorkout[ex.name] = sets;
+                        const prevSets = lastWorkout.workout && lastWorkout.workout[ex.name];
+                        if (prevSets && prevSets.length > 0) {
+                            const newSets = [];
+                            for (let i = 0; i < ex.sets; i++) {
+                                if (i < prevSets.length) {
+                                    newSets.push({ weight: prevSets[i].weight, reps: prevSets[i].reps, completed: false });
+                                } else {
+                                    // Pad extra sets with last known weight/reps
+                                    const lastSet = prevSets[prevSets.length - 1];
+                                    newSets.push({ weight: lastSet.weight, reps: lastSet.reps, completed: false });
+                                }
+                            }
+                            currentWorkout[ex.name] = newSets;
                         } else {
                             currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
                                 weight: '', reps: '', completed: false
@@ -1095,9 +1122,10 @@
 
             workout.exercises.forEach(exercise => {
                 const sets = currentWorkout[exercise.name] || [];
-                const totalVolume = sets.reduce((sum, set) => {
+                const totalVolume = sets.filter(s => s.completed).reduce((sum, set) => {
                     return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
                 }, 0);
+                const exerciseRestTime = exercise.restTime || workoutTypes[currentWorkoutId].restTime || REST_TIME;
 
                 const card = document.createElement('div');
                 card.className = 'exercise-card';
@@ -1105,6 +1133,7 @@
                     <div class="exercise-header">
                         <div class="exercise-name">${exercise.name}</div>
                         <div class="exercise-total">${totalVolume > 0 ? totalVolume + ' kg total' : ''}</div>
+                        <button class="rest-time-badge" onclick="openEditExercise('${exercise.name}')" aria-label="Edit rest time for ${exercise.name}">⏱️ ${exerciseRestTime}s</button>
                         <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.name}')">✕</button>
                     </div>
                     <div class="sets-container">
@@ -1147,18 +1176,39 @@
         }
 
         function openAddExercise() {
+            editingExerciseName = null;
+            document.getElementById('addExerciseModalTitle').textContent = 'Add Exercise';
+            document.getElementById('addExerciseSaveBtn').textContent = 'Add';
             document.getElementById('exerciseNameInput').value = '';
+            document.getElementById('exerciseNameInput').readOnly = false;
             document.getElementById('exerciseSetsInput').value = '3';
+            document.getElementById('exerciseRestTimeInput').value = '';
+            document.getElementById('addExerciseModal').classList.add('active');
+        }
+
+        function openEditExercise(name) {
+            editingExerciseName = name;
+            const workout = workoutTypes[currentWorkoutId];
+            const exercise = workout.exercises.find(ex => ex.name === name);
+            document.getElementById('addExerciseModalTitle').textContent = 'Edit Exercise';
+            document.getElementById('addExerciseSaveBtn').textContent = 'Save';
+            document.getElementById('exerciseNameInput').value = name;
+            document.getElementById('exerciseNameInput').readOnly = true;
+            document.getElementById('exerciseSetsInput').value = exercise.sets;
+            document.getElementById('exerciseRestTimeInput').value = exercise.restTime || '';
             document.getElementById('addExerciseModal').classList.add('active');
         }
 
         function closeAddExercise() {
             document.getElementById('addExerciseModal').classList.remove('active');
+            editingExerciseName = null;
         }
 
-        async function addExercise() {
+        async function saveExercise() {
             const name = document.getElementById('exerciseNameInput').value.trim();
-            const sets = parseInt(document.getElementById('exerciseSetsInput').value) || 3;
+            const sets = Math.min(10, Math.max(1, parseInt(document.getElementById('exerciseSetsInput').value) || 3));
+            const restTimeRaw = parseInt(document.getElementById('exerciseRestTimeInput').value);
+            const restTime = isNaN(restTimeRaw) ? null : Math.min(600, Math.max(10, restTimeRaw));
 
             if (!name) {
                 alert('Please enter an exercise name');
@@ -1166,15 +1216,43 @@
             }
 
             const workout = workoutTypes[currentWorkoutId];
-            if (workout.exercises.some(ex => ex.name === name)) {
-                alert('This exercise already exists in this workout');
-                return;
-            }
 
-            workout.exercises.push({ name, sets });
-            currentWorkout[name] = Array(sets).fill().map(() => ({
-                weight: '', reps: '', completed: false
-            }));
+            if (editingExerciseName) {
+                // Edit existing exercise
+                const exercise = workout.exercises.find(ex => ex.name === editingExerciseName);
+                if (exercise) {
+                    exercise.sets = sets;
+                    if (restTime !== null) {
+                        exercise.restTime = restTime;
+                    } else {
+                        delete exercise.restTime;
+                    }
+                    // Adjust currentWorkout sets to new count
+                    const prevSets = currentWorkout[editingExerciseName] || [];
+                    const newSets = [];
+                    for (let i = 0; i < sets; i++) {
+                        if (i < prevSets.length) {
+                            newSets.push(prevSets[i]);
+                        } else {
+                            const lastSet = prevSets[prevSets.length - 1];
+                            newSets.push({ weight: lastSet?.weight || '', reps: lastSet?.reps || '', completed: false });
+                        }
+                    }
+                    currentWorkout[editingExerciseName] = newSets;
+                }
+            } else {
+                // Add new exercise
+                if (workout.exercises.some(ex => ex.name === name)) {
+                    alert('This exercise already exists in this workout');
+                    return;
+                }
+                const newExercise = { name, sets };
+                if (restTime !== null) newExercise.restTime = restTime;
+                workout.exercises.push(newExercise);
+                currentWorkout[name] = Array(sets).fill().map(() => ({
+                    weight: '', reps: '', completed: false
+                }));
+            }
 
             await saveWorkoutTypes();
             renderExercises();
@@ -1201,14 +1279,15 @@
             set.completed = !set.completed;
             
             if (set.completed && set.weight && set.reps) {
-                startTimer();
+                startTimer(exercise);
             }
             
             renderExercises();
         }
 
-        function startTimer() {
-            timeRemaining = workoutTypes[currentWorkoutId].restTime || REST_TIME;
+        function startTimer(exerciseName) {
+            const exercise = exerciseName && workoutTypes[currentWorkoutId].exercises.find(ex => ex.name === exerciseName);
+            timeRemaining = (exercise && exercise.restTime) || workoutTypes[currentWorkoutId].restTime || REST_TIME;
             timerRunning = true;
             document.getElementById('timerModal').classList.add('active');
             updateTimerDisplay();
@@ -1314,9 +1393,11 @@
                     
                     exercises.forEach(exercise => {
                         const sets = entry.workout[exercise.name] || [];
-                        const completedSets = sets.filter(s => s.completed).length;
-                        const totalVolume = sets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
-                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${completedSets} sets • ${totalVolume} kg</span></div>`;
+                        const completedSets = sets.filter(s => s.completed);
+                        const completedCount = completedSets.length;
+                        const totalVolume = completedSets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
+                        const volumeStr = totalVolume > 0 ? ` • ${totalVolume} kg` : '';
+                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${completedCount} sets${volumeStr}</span></div>`;
                     });
                     
                     historyHTML += '</div></div>';
@@ -1554,8 +1635,9 @@
         window.saveWorkoutType = saveWorkoutType;
         window.deleteWorkout = deleteWorkout;
         window.openAddExercise = openAddExercise;
+        window.openEditExercise = openEditExercise;
         window.closeAddExercise = closeAddExercise;
-        window.addExercise = addExercise;
+        window.saveExercise = saveExercise;
         window.deleteExercise = deleteExercise;
         window.updateSet = updateSet;
         window.toggleSetComplete = toggleSetComplete;
