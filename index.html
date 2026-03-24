@@ -621,7 +621,7 @@
 </head>
 <body>
     <div id="authScreen" class="auth-container">
-        <div class="auth-title">💪 Welcome to Gym Tracker</div>
+        <div class="auth-title">💪 Welcome to Gym Tracker 2.05</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
         <input type="email" id="emailInput" class="auth-input" placeholder="Email" autocomplete="email">
@@ -930,6 +930,53 @@
             }
         }
 
+
+        async function loadCurrentWorkout() {
+            try {
+                const userId = window.currentUser.uid;
+                const workout = workoutTypes[currentWorkoutId];
+                
+                if (!workout || !workout.exercises) {
+                    currentWorkout = {};
+                    return;
+                }
+                
+                const workoutsRef = window.firebaseModules.collection(window.firebaseDb, `users/${userId}/workouts`);
+                const q = window.firebaseModules.query(
+                    workoutsRef,
+                    window.firebaseModules.where('workoutId', '==', currentWorkoutId),
+                    window.firebaseModules.orderBy('date', 'desc'),
+                    window.firebaseModules.limit(1)
+                );
+                
+                const querySnapshot = await window.firebaseModules.getDocs(q);
+                currentWorkout = {};
+                
+                if (!querySnapshot.empty) {
+                    const lastWorkout = querySnapshot.docs[0].data();
+                    workout.exercises.forEach(ex => {
+                        if (lastWorkout.workout && lastWorkout.workout[ex.name]) {
+                            currentWorkout[ex.name] = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
+                        } else {
+                            currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
+                                weight: '', reps: '', completed: false
+                            }));
+                        }
+                    });
+                } else {
+                    workout.exercises.forEach(ex => {
+                        currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
+                            weight: '', reps: '', completed: false
+                        }));
+                    });
+                }
+                
+                updateSyncStatus('', '☁️ Synced');
+            } catch (error) {
+                console.error('Error loading workout:', error);
+                updateSyncStatus('error', '⚠️ Error');
+            }
+        }
         async function saveWorkoutTypes() {
             try {
                 const userId = window.currentUser.uid;
