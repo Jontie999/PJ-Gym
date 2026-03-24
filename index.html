@@ -674,8 +674,9 @@
     <div class="modal-overlay" id="workoutModal">
         <div class="modal">
             <div class="modal-title" id="workoutModalTitle">New Workout</div>
-            <input type="text" id="workoutNameInput" class="modal-input" placeholder="Workout name (e.g., Push, Pull, Legs)">
-            <input type="text" id="workoutEmojiInput" class="modal-input" placeholder="Emoji (optional)" maxlength="2">
+            <input type="text" id="workoutNameInput" class="modal-input" placeholder="Workout name (e.g., Push, Pull, Legs)" aria-label="Workout name">
+            <input type="text" id="workoutEmojiInput" class="modal-input" placeholder="Emoji (optional)" maxlength="2" aria-label="Workout emoji">
+            <input type="number" id="workoutRestTimeInput" class="modal-input" placeholder="Rest period (seconds)" value="90" min="10" max="600" aria-label="Rest period in seconds">
             <div class="modal-buttons">
                 <button class="modal-btn secondary" onclick="closeWorkoutModal()">Cancel</button>
                 <button class="modal-btn primary" onclick="saveWorkoutType()">Save</button>
@@ -749,6 +750,7 @@
             'push': {
                 name: 'Push',
                 emoji: '💪',
+                restTime: 90,
                 exercises: [
                     { name: 'Bench Press', sets: 3 },
                     { name: 'Incline Dumbbell Press', sets: 3 },
@@ -904,7 +906,9 @@
                     const lastWorkout = querySnapshot.docs[0].data();
                     workout.exercises.forEach(ex => {
                         if (lastWorkout.workout && lastWorkout.workout[ex.name]) {
-                            currentWorkout[ex.name] = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
+                            const sets = JSON.parse(JSON.stringify(lastWorkout.workout[ex.name]));
+                            sets.forEach(set => { set.completed = false; });
+                            currentWorkout[ex.name] = sets;
                         } else {
                             currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
                                 weight: '', reps: '', completed: false
@@ -972,10 +976,12 @@
                 document.getElementById('workoutModalTitle').textContent = 'Edit Workout';
                 document.getElementById('workoutNameInput').value = workout.name;
                 document.getElementById('workoutEmojiInput').value = workout.emoji || '';
+                document.getElementById('workoutRestTimeInput').value = workout.restTime || REST_TIME;
             } else {
                 document.getElementById('workoutModalTitle').textContent = 'New Workout';
                 document.getElementById('workoutNameInput').value = '';
                 document.getElementById('workoutEmojiInput').value = '';
+                document.getElementById('workoutRestTimeInput').value = REST_TIME;
             }
             
             document.getElementById('workoutModal').classList.add('active');
@@ -989,6 +995,7 @@
         async function saveWorkoutType() {
             const name = document.getElementById('workoutNameInput').value.trim();
             const emoji = document.getElementById('workoutEmojiInput').value.trim();
+            const restTime = Math.min(600, Math.max(10, parseInt(document.getElementById('workoutRestTimeInput').value) || REST_TIME));
             
             if (!name) {
                 alert('Please enter a workout name');
@@ -1005,8 +1012,9 @@
             if (editingWorkoutId) {
                 workoutTypes[id].name = name;
                 workoutTypes[id].emoji = emoji;
+                workoutTypes[id].restTime = restTime;
             } else {
-                workoutTypes[id] = { name, emoji, exercises: [] };
+                workoutTypes[id] = { name, emoji, restTime, exercises: [] };
                 currentWorkoutId = id;
             }
 
@@ -1200,7 +1208,7 @@
         }
 
         function startTimer() {
-            timeRemaining = REST_TIME;
+            timeRemaining = workoutTypes[currentWorkoutId].restTime || REST_TIME;
             timerRunning = true;
             document.getElementById('timerModal').classList.add('active');
             updateTimerDisplay();
@@ -1332,7 +1340,7 @@
                 item.innerHTML = `
                     <div>
                         <div style="color: #fff; font-size: 16px;">${workout.emoji || '💪'} ${workout.name}</div>
-                        <div style="color: #888; font-size: 14px;">${workout.exercises.length} exercises</div>
+                        <div style="color: #888; font-size: 14px;">${workout.exercises.length} exercises • ${workout.restTime || REST_TIME}s rest</div>
                     </div>
                     <div class="btn-group">
                         <button class="icon-btn" onclick="openWorkoutModal('${id}')">Edit</button>
@@ -1553,6 +1561,7 @@
         window.toggleSetComplete = toggleSetComplete;
         window.saveWorkout = saveWorkout;
         window.skipTimer = skipTimer;
+        window.toggleTimer = toggleTimer;
         window.updateExerciseChart = updateExerciseChart;
     </script>
 </body>
