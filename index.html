@@ -445,7 +445,6 @@
         }
 
         .save-btn {
-        .save-btn {
             position: fixed;
             bottom: calc(30px + env(safe-area-inset-bottom));
             right: 20px;
@@ -464,24 +463,6 @@
 
         .save-btn:active {
             transform: scale(0.95);
-        }
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        /* Updated save button */
-        .save-btn:active {
-            transform: translateX(-50%) scale(0.95);
         }
 
         .tab-content {
@@ -502,39 +483,6 @@
             font-size: 60px;
             margin-bottom: 20px;
         }
-
-        .charts-container {
-            padding: 10px 0;
-        }
-
-        .chart-section {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .chart-section h3 {
-            color: #667eea;
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-
-        .chart-section canvas {
-            max-height: 300px;
-        }
-
-        .exercise-select {
-            width: 100%%;
-            padding: 12px;
-            background: #0f0f0f;
-            color: #fff;
-            border: 1px solid #2a2a3e;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
 
         .charts-container {
             padding: 10px 0;
@@ -1406,12 +1354,12 @@
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('historyTab').classList.add('active');
             } else if (tab === 'settings') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('settingsTab').classList.add('active');
             } else if (tab === 'charts') {
                 document.querySelectorAll('.tab')[3].classList.add('active');
                 document.getElementById('chartsTab').classList.add('active');
                 loadCharts();
-                document.querySelectorAll('.tab')[2].classList.add('active');
-                document.getElementById('settingsTab').classList.add('active');
             }
         }
 
