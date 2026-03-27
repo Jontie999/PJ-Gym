@@ -579,6 +579,39 @@
             color: #ef4444;
         }
 
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            border-radius: 10px;
+            padding: 14px 12px;
+        }
+
+        .summary-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .summary-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        .summary-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -628,6 +661,7 @@
 
         <div id="chartsTab" class="tab-content">
             <div class="charts-container">
+                <div id="workoutSummaryContainer"></div>
                 <div class="chart-section">
                     <h3>Workout Frequency</h3>
                     <canvas id="frequencyChart"></canvas>
@@ -895,6 +929,12 @@
                 
                 if (docSnap.exists()) {
                     workoutTypes = docSnap.data().types;
+                    // Ensure every workout type has an exercises array
+                    Object.keys(workoutTypes).forEach(id => {
+                        if (!workoutTypes[id].exercises) {
+                            workoutTypes[id].exercises = DEFAULT_WORKOUTS[id] ? DEFAULT_WORKOUTS[id].exercises : [];
+                        }
+                    });
                 } else {
                     workoutTypes = DEFAULT_WORKOUTS;
                     await saveWorkoutTypes();
@@ -937,20 +977,28 @@
                 }
                 
                 const workoutsRef = window.firebaseModules.collection(window.firebaseDb, `users/${userId}/workouts`);
+                // Use only orderBy (single-field index, no composite index required)
+                // then filter client-side for the current workout type
                 const q = window.firebaseModules.query(
                     workoutsRef,
-                    window.firebaseModules.where('workoutId', '==', currentWorkoutId),
                     window.firebaseModules.orderBy('date', 'desc'),
-                    window.firebaseModules.limit(1)
+                    window.firebaseModules.limit(100)
                 );
                 
                 const querySnapshot = await window.firebaseModules.getDocs(q);
                 currentWorkout = {};
+
+                let lastWorkoutData = null;
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!lastWorkoutData && data.workoutId === currentWorkoutId) {
+                        lastWorkoutData = data;
+                    }
+                });
                 
-                if (!querySnapshot.empty) {
-                    const lastWorkout = querySnapshot.docs[0].data();
+                if (lastWorkoutData) {
                     workout.exercises.forEach(ex => {
-                        const prevSets = lastWorkout.workout && lastWorkout.workout[ex.name];
+                        const prevSets = lastWorkoutData.workout && lastWorkoutData.workout[ex.name];
                         if (prevSets && prevSets.length > 0) {
                             const newSets = [];
                             for (let i = 0; i < ex.sets; i++) {
@@ -981,6 +1029,17 @@
             } catch (error) {
                 console.error('Error loading workout:', error);
                 updateSyncStatus('error', '⚠️ Error');
+                // Ensure exercises are still visible with empty sets when loading fails
+                const workout = workoutTypes[currentWorkoutId];
+                if (workout && workout.exercises) {
+                    workout.exercises.forEach(ex => {
+                        if (!currentWorkout[ex.name]) {
+                            currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
+                                weight: '', reps: '', completed: false
+                            }));
+                        }
+                    });
+                }
             }
         }
         async function saveWorkoutTypes() {
@@ -1011,7 +1070,7 @@
             const addChip = document.createElement('div');
             addChip.className = 'workout-chip add';
             addChip.textContent = '+ New Workout';
-            addChip.onclick = openWorkoutModal;
+            addChip.onclick = () => openWorkoutModal();
             container.appendChild(addChip);
         }
 
@@ -1137,7 +1196,7 @@
             container.innerHTML = '';
 
             const workout = workoutTypes[currentWorkoutId];
-            if (!workout || !workout.exercises.length) {
+            if (!workout || !workout.exercises || !workout.exercises.length) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🏋️</div>
@@ -1551,9 +1610,55 @@
             ctx.stroke();
         }
 
+        function renderWorkoutSummary(workouts) {
+            const container = document.getElementById('workoutSummaryContainer');
+            if (!workouts.length) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const summary = {};
+            workouts.forEach(w => {
+                const id = w.workoutId || 'unknown';
+                const name = w.workoutName || id;
+                if (!summary[id]) {
+                    summary[id] = { name, sessions: 0, totalVolume: 0, lastDate: null };
+                }
+                summary[id].sessions++;
+                if (w.workout) {
+                    Object.values(w.workout).forEach(sets => {
+                        sets.forEach(set => {
+                            summary[id].totalVolume += (parseFloat(set.weight) || 0) * (parseFloat(set.reps) || 0);
+                        });
+                    });
+                }
+                const date = w.date ? new Date(w.date) : null;
+                if (date && !isNaN(date) && (!summary[id].lastDate || date > summary[id].lastDate)) {
+                    summary[id].lastDate = date;
+                }
+            });
+
+            let html = '<div class="chart-section"><h3>Workout Summary</h3><div class="summary-grid">';
+            Object.values(summary).sort((a, b) => b.sessions - a.sessions).forEach(s => {
+                const dateStr = s.lastDate
+                    ? s.lastDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '—';
+                html += `
+                    <div class="summary-card">
+                        <div class="summary-name">${s.name}</div>
+                        <div class="summary-stat"><span>Sessions</span><span class="summary-value">${s.sessions}</span></div>
+                        <div class="summary-stat"><span>Total Volume</span><span class="summary-value">${Math.round(s.totalVolume).toLocaleString()} kg</span></div>
+                        <div class="summary-stat"><span>Last Session</span><span class="summary-value">${dateStr}</span></div>
+                    </div>`;
+            });
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
         async function loadCharts() {
             try {
                 const workouts = await loadAllWorkouts();
+                renderWorkoutSummary(workouts);
                 populateExerciseSelect(workouts);
                 renderFrequencyChart(workouts);
                 renderVolumeChart(workouts);
