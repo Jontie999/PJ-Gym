@@ -831,8 +831,6 @@
     </script>
 
     <script>
-        const APP_VERSION = '2.01';
-
         const DEFAULT_WORKOUTS = {
             'push': {
                 name: 'Push',
@@ -964,7 +962,7 @@
         function updateDate() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options) + ' • v' + APP_VERSION;
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options);
         }
 
         async function loadWorkoutTypes() {
@@ -1825,10 +1823,8 @@
                         const weight = parseFloat(set.weight) || 0;
                         if (weight > maxWeight) maxWeight = weight;
                     });
-                    if (maxWeight > 0) {
-                        const dateKey = new Date(workout.date).toISOString().split('T')[0];
-                        if (!dateMap[dateKey] || maxWeight > dateMap[dateKey]) dateMap[dateKey] = maxWeight;
-                    }
+                    const dateKey = new Date(workout.date).toISOString().split('T')[0];
+                    if (!dateMap[dateKey] || maxWeight > dateMap[dateKey]) dateMap[dateKey] = maxWeight;
                 }
             });
             const canvas = document.getElementById('exerciseChart');
