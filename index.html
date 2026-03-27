@@ -935,6 +935,17 @@
                             workoutTypes[id].exercises = DEFAULT_WORKOUTS[id] ? DEFAULT_WORKOUTS[id].exercises : [];
                         }
                     });
+                    // Add any missing default workout types (e.g. pull/legs added after user first signed up)
+                    let addedDefaults = false;
+                    Object.keys(DEFAULT_WORKOUTS).forEach(id => {
+                        if (!workoutTypes[id]) {
+                            workoutTypes[id] = DEFAULT_WORKOUTS[id];
+                            addedDefaults = true;
+                        }
+                    });
+                    if (addedDefaults) {
+                        await saveWorkoutTypes();
+                    }
                 } else {
                     workoutTypes = DEFAULT_WORKOUTS;
                     await saveWorkoutTypes();
