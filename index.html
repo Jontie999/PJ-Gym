@@ -249,6 +249,39 @@
             background: rgba(102, 126, 234, 0.3);
         }
 
+        .last-session {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+
+        .last-session-label {
+            color: #667eea;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .last-session-set {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(102, 126, 234, 0.08);
+            white-space: nowrap;
+        }
+
+        .last-session-set.completed {
+            color: #a0aec0;
+        }
+
+        .last-session-set.incomplete {
+            color: #555;
+        }
+
         .sets-container {
             display: flex;
             flex-direction: column;
@@ -841,6 +874,16 @@
         };
 
         const REST_TIME = 90;
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         let workoutTypes = {};
         let currentWorkoutId = 'push';
         let currentWorkout = {};
@@ -1229,6 +1272,14 @@
                 }, 0);
                 const exerciseRestTime = exercise.restTime || workoutTypes[currentWorkoutId].restTime || REST_TIME;
 
+                const lastSets = lastSessionData && lastSessionData.workout && lastSessionData.workout[exercise.name];
+                const lastSessionHtml = lastSets && lastSets.length > 0
+                    ? `<div class="last-session">
+                        <span class="last-session-label">Last:</span>
+                        ${lastSets.map(set => `<span class="last-session-set ${set.completed ? 'completed' : 'incomplete'}">${set.completed ? '✓' : '–'} ${escapeHtml(set.weight)}kg×${escapeHtml(set.reps)}</span>`).join('')}
+                    </div>`
+                    : '';
+
                 const card = document.createElement('div');
                 card.className = 'exercise-card';
                 card.innerHTML = `
@@ -1238,6 +1289,7 @@
                         <button class="rest-time-badge" onclick="openEditExercise('${exercise.name}')" aria-label="Edit rest time for ${exercise.name}">⏱️ ${exerciseRestTime}s</button>
                         <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.name}')">✕</button>
                     </div>
+                    ${lastSessionHtml}
                     <div class="sets-container">
                         ${sets.map((set, index) => `
                             <div class="set-row">
