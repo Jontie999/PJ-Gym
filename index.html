@@ -1250,7 +1250,25 @@
             });
         }
 
+        function syncInputValues() {
+            const container = document.getElementById('exercisesContainer');
+            if (!container) return;
+            container.querySelectorAll('.exercise-card').forEach(card => {
+                const nameEl = card.querySelector('.exercise-name');
+                if (!nameEl) return;
+                const exerciseName = nameEl.textContent.trim();
+                if (!currentWorkout[exerciseName]) return;
+                card.querySelectorAll('.set-row').forEach((row, setIdx) => {
+                    const [weightInput, repsInput] = row.querySelectorAll('input.input-field');
+                    if (!currentWorkout[exerciseName][setIdx]) return;
+                    if (weightInput) currentWorkout[exerciseName][setIdx].weight = weightInput.value;
+                    if (repsInput) currentWorkout[exerciseName][setIdx].reps = repsInput.value;
+                });
+            });
+        }
+
         function renderExercises() {
+            syncInputValues();
             const container = document.getElementById('exercisesContainer');
             container.innerHTML = '';
 
@@ -1496,6 +1514,7 @@
 
         async function saveWorkout() {
             try {
+                syncInputValues();
                 updateSyncStatus('syncing', '⏳ Saving...');
                 
                 const userId = window.currentUser.uid;
