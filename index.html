@@ -844,6 +844,7 @@
         let workoutTypes = {};
         let currentWorkoutId = 'push';
         let currentWorkout = {};
+        let lastSessionData = null;
         let timerInterval = null;
         let timeRemaining = REST_TIME;
         let timerRunning = false;
@@ -982,6 +983,8 @@
                 const userId = window.currentUser.uid;
                 const workout = workoutTypes[currentWorkoutId];
                 
+                lastSessionData = null;
+                
                 if (!workout || !workout.exercises) {
                     currentWorkout = {};
                     return;
@@ -1006,6 +1009,8 @@
                         lastWorkoutData = data;
                     }
                 });
+                
+                lastSessionData = lastWorkoutData;
                 
                 if (lastWorkoutData) {
                     workout.exercises.forEach(ex => {
@@ -1346,9 +1351,19 @@
                 const newExercise = { name, sets };
                 if (restTime !== null) newExercise.restTime = restTime;
                 workout.exercises.push(newExercise);
-                currentWorkout[name] = Array(sets).fill().map(() => ({
-                    weight: '', reps: '', completed: false
-                }));
+                const prevSets = lastSessionData && lastSessionData.workout && lastSessionData.workout[name];
+                if (prevSets && prevSets.length > 0) {
+                    const newSets = [];
+                    for (let i = 0; i < sets; i++) {
+                        const ref = i < prevSets.length ? prevSets[i] : prevSets[prevSets.length - 1];
+                        newSets.push({ weight: ref.weight, reps: ref.reps, completed: false });
+                    }
+                    currentWorkout[name] = newSets;
+                } else {
+                    currentWorkout[name] = Array(sets).fill().map(() => ({
+                        weight: '', reps: '', completed: false
+                    }));
+                }
             }
 
             await saveWorkoutTypes();
@@ -1452,6 +1467,8 @@
                 alert('Workout saved! 💪');
                 
                 await renderHistory();
+                await loadCurrentWorkout();
+                renderExercises();
             } catch (error) {
                 console.error('Error saving workout:', error);
                 updateSyncStatus('error', '⚠️ Save failed');
