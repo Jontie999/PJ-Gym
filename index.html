@@ -279,7 +279,7 @@
         }
 
         .last-session-set.incomplete {
-            color: #555;
+            color: #888;
         }
 
         .sets-container {
@@ -1295,7 +1295,7 @@
                 const lastSets = lastSessionData && lastSessionData.workout && lastSessionData.workout[exercise.name];
                 const lastSessionHtml = lastSets && lastSets.length > 0
                     ? `<div class="last-session">
-                        <span class="last-session-label">Last:</span>
+                        <span class="last-session-label">Prev session:</span>
                         ${lastSets.map(set => `<span class="last-session-set ${set.completed ? 'completed' : 'incomplete'}">${set.completed ? '✓' : '–'} ${escapeHtml(set.weight)}kg×${escapeHtml(set.reps)}</span>`).join('')}
                     </div>`
                     : '';
@@ -1580,11 +1580,10 @@
                     
                     exercises.forEach(exercise => {
                         const sets = entry.workout[exercise.name] || [];
-                        const completedSets = sets.filter(s => s.completed);
-                        const completedCount = completedSets.length;
-                        const totalVolume = completedSets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
+                        const count = sets.length;
+                        const totalVolume = sets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
                         const volumeStr = totalVolume > 0 ? ` • ${totalVolume} kg` : '';
-                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${completedCount} sets${volumeStr}</span></div>`;
+                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${count} sets${volumeStr}</span></div>`;
                     });
                     
                     historyHTML += '</div></div>';
