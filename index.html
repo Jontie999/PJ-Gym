@@ -882,6 +882,7 @@
         };
 
         const REST_TIME = 90;
+        const APP_VERSION = '2.02';
 
         function escapeHtml(str) {
             return String(str)
@@ -970,7 +971,7 @@
         function updateDate() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options);
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options) + ' • v' + APP_VERSION;
         }
 
         async function loadWorkoutTypes() {
@@ -985,6 +986,17 @@
                     Object.keys(workoutTypes).forEach(id => {
                         if (!workoutTypes[id].exercises) {
                             workoutTypes[id].exercises = DEFAULT_WORKOUTS[id] ? DEFAULT_WORKOUTS[id].exercises : [];
+                        }
+                        // Merge missing defaultWeight/defaultReps from DEFAULT_WORKOUTS for matching exercises
+                        if (DEFAULT_WORKOUTS[id] && DEFAULT_WORKOUTS[id].exercises) {
+                            const defExMap = new Map(DEFAULT_WORKOUTS[id].exercises.map(d => [d.name, d]));
+                            workoutTypes[id].exercises.forEach(ex => {
+                                const defEx = defExMap.get(ex.name);
+                                if (defEx) {
+                                    if (ex.defaultWeight === undefined) ex.defaultWeight = defEx.defaultWeight ?? '';
+                                    if (ex.defaultReps === undefined) ex.defaultReps = defEx.defaultReps ?? '';
+                                }
+                            });
                         }
                     });
                     // Add any missing default workout types (e.g. pull/legs added after user first signed up)
