@@ -829,11 +829,11 @@
             if (user) {
                 window.currentUser = user;
                 document.getElementById('userEmail').textContent = user.email;
-                showApp();
-                init();
+                window.showApp();
+                window.init();
             } else {
                 window.currentUser = null;
-                showAuth();
+                window.showAuth();
             }
         });
     </script>
@@ -1882,6 +1882,9 @@
         window.skipTimer = skipTimer;
         window.toggleTimer = toggleTimer;
         window.updateExerciseChart = updateExerciseChart;
+        window.handleAuth = handleAuth;
+        window.toggleAuthMode = toggleAuthMode;
+        window.handleLogout = handleLogout;
     </script>
 </body>
 </html>
