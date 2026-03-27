@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>Gym Tracker 2.01</title>
+    <title>Gym Tracker 2.02</title>
     <style>
         * {
             margin: 0;
@@ -652,7 +652,7 @@
 </head>
 <body>
     <div id="authScreen" class="auth-container">
-        <div class="auth-title">💪 Welcome to Gym Tracker 2.01</div>
+        <div class="auth-title">💪 Welcome to Gym Tracker 2.02</div>
         <div class="auth-subtitle">Sign in to sync your workouts across devices</div>
         
         <input type="email" id="emailInput" class="auth-input" placeholder="Email" autocomplete="email">
@@ -730,12 +730,20 @@
                     <button class="icon-btn danger-btn" onclick="handleLogout()">Sign Out</button>
                 </div>
             </div>
+            <div class="settings-section">
+                <div class="settings-title">About</div>
+                <div class="settings-item">
+                    <div>
+                        <div style="color: #fff; font-size: 16px;">Gym Tracker</div>
+                        <div style="color: #888; font-size: 14px;">Version 2.02</div>
+                    </div>
+                </div>
+            </div>
         </div>
-
         <button class="save-btn" onclick="saveWorkout()">Save Workout</button>
     </div>
 
-    <div class="timer-modal" id="timerModal">
+<div class="timer-modal" id="timerModal">
         <div class="timer-content">
             <div class="timer-display" id="timerDisplay">90</div>
             <div class="timer-controls">
@@ -837,12 +845,12 @@
                 emoji: '💪',
                 restTime: 90,
                 exercises: [
-                    { name: 'Bench Press', sets: 3 },
-                    { name: 'Incline Dumbbell Press', sets: 3 },
-                    { name: 'Shoulder Press', sets: 3 },
-                    { name: 'Lateral Raises', sets: 3 },
-                    { name: 'Tricep Pushdowns', sets: 3 },
-                    { name: 'Overhead Tricep Extension', sets: 3 }
+                    { name: 'Bench Press', sets: 3, defaultWeight: '60', defaultReps: '8' },
+                    { name: 'Incline Dumbbell Press', sets: 3, defaultWeight: '20', defaultReps: '10' },
+                    { name: 'Shoulder Press', sets: 3, defaultWeight: '40', defaultReps: '8' },
+                    { name: 'Lateral Raises', sets: 3, defaultWeight: '10', defaultReps: '12' },
+                    { name: 'Tricep Pushdowns', sets: 3, defaultWeight: '25', defaultReps: '12' },
+                    { name: 'Overhead Tricep Extension', sets: 3, defaultWeight: '20', defaultReps: '10' }
                 ]
             },
             'pull': {
@@ -850,12 +858,12 @@
                 emoji: '🏋️',
                 restTime: 90,
                 exercises: [
-                    { name: 'Pull-ups', sets: 3 },
-                    { name: 'Barbell Rows', sets: 3 },
-                    { name: 'Lat Pulldowns', sets: 3 },
-                    { name: 'Face Pulls', sets: 3 },
-                    { name: 'Barbell Curls', sets: 3 },
-                    { name: 'Hammer Curls', sets: 3 }
+                    { name: 'Pull-ups', sets: 3, defaultWeight: '0', defaultReps: '8' },
+                    { name: 'Barbell Rows', sets: 3, defaultWeight: '60', defaultReps: '8' },
+                    { name: 'Lat Pulldowns', sets: 3, defaultWeight: '50', defaultReps: '10' },
+                    { name: 'Face Pulls', sets: 3, defaultWeight: '20', defaultReps: '15' },
+                    { name: 'Barbell Curls', sets: 3, defaultWeight: '30', defaultReps: '10' },
+                    { name: 'Hammer Curls', sets: 3, defaultWeight: '15', defaultReps: '10' }
                 ]
             },
             'legs': {
@@ -863,12 +871,12 @@
                 emoji: '🦵',
                 restTime: 90,
                 exercises: [
-                    { name: 'Squats', sets: 3 },
-                    { name: 'Leg Press', sets: 3 },
-                    { name: 'Leg Curls', sets: 3 },
-                    { name: 'Leg Extensions', sets: 3 },
-                    { name: 'Calf Raises', sets: 3 },
-                    { name: 'Romanian Deadlifts', sets: 3 }
+                    { name: 'Squats', sets: 3, defaultWeight: '60', defaultReps: '8' },
+                    { name: 'Leg Press', sets: 3, defaultWeight: '100', defaultReps: '10' },
+                    { name: 'Leg Curls', sets: 3, defaultWeight: '40', defaultReps: '12' },
+                    { name: 'Leg Extensions', sets: 3, defaultWeight: '40', defaultReps: '12' },
+                    { name: 'Calf Raises', sets: 3, defaultWeight: '60', defaultReps: '15' },
+                    { name: 'Romanian Deadlifts', sets: 3, defaultWeight: '60', defaultReps: '10' }
                 ]
             }
         };
@@ -1072,14 +1080,14 @@
                             currentWorkout[ex.name] = newSets;
                         } else {
                             currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
-                                weight: '', reps: '', completed: false
+                                weight: ex.defaultWeight || '', reps: ex.defaultReps || '', completed: false
                             }));
                         }
                     });
                 } else {
                     workout.exercises.forEach(ex => {
                         currentWorkout[ex.name] = Array(ex.sets).fill().map(() => ({
-                            weight: '', reps: '', completed: false
+                            weight: ex.defaultWeight || '', reps: ex.defaultReps || '', completed: false
                         }));
                     });
                 }
@@ -1580,8 +1588,7 @@
                         const sets = entry.workout[exercise.name] || [];
                         const count = sets.length;
                         const totalVolume = sets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
-                        const volumeStr = totalVolume > 0 ? ` • ${totalVolume} kg` : '';
-                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${count} sets${volumeStr}</span></div>`;
+                        historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${count} sets • ${totalVolume} kg</span></div>`;
                     });
                     
                     historyHTML += '</div></div>';
