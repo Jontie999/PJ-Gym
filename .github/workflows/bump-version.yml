@@ -1,0 +1,48 @@
+name: Bump Version
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  bump-version:
+    # Skip if this push was made by the workflow itself (avoid infinite loop)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump APP_VERSION in index.html
+        run: |
+          # Extract current version (e.g. '2.03')
+          CURRENT=$(grep -oP "(?<=APP_VERSION = ')[^']+" index.html)
+          echo "Current version: $CURRENT"
+
+          # Split into major and minor parts
+          MAJOR=$(echo "$CURRENT" | cut -d'.' -f1)
+          MINOR=$(echo "$CURRENT" | cut -d'.' -f2)
+
+          # Increment minor as an integer, then zero-pad back to 2 digits
+          NEW_MINOR=$(printf "%02d" $(( 10#$MINOR + 1 )))
+          NEW_VERSION="${MAJOR}.${NEW_MINOR}"
+          echo "New version: $NEW_VERSION"
+
+          # Replace in file
+          sed -i "s/APP_VERSION = '${CURRENT}'/APP_VERSION = '${NEW_VERSION}'/" index.html
+
+      - name: Commit and push bumped version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "chore: bump version [skip ci]"
+          git push
