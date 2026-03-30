@@ -1054,12 +1054,14 @@
                 }
                 
                 const workoutsRef = window.firebaseModules.collection(window.firebaseDb, `users/${userId}/workouts`);
-                // Use only orderBy (single-field index, no composite index required)
-                // then filter client-side for the current workout type
+                // Fetch the last 500 workouts ordered by date descending and filter
+                // client-side for the current workout type.  500 is large enough that
+                // a user would need to skip a given workout type for 500+ consecutive
+                // sessions before the pre-fill could miss their last entry.
                 const q = window.firebaseModules.query(
                     workoutsRef,
                     window.firebaseModules.orderBy('date', 'desc'),
-                    window.firebaseModules.limit(100)
+                    window.firebaseModules.limit(500)
                 );
                 
                 const querySnapshot = await window.firebaseModules.getDocs(q);
