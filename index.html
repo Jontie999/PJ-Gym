@@ -1617,9 +1617,8 @@
                     
                     exercises.forEach(exercise => {
                         const sets = entry.workout[exercise.name] || [];
-                        const completedSets = sets.filter(s => s.completed);
-                        const count = completedSets.length;
-                        const totalVolume = completedSets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
+                        const count = sets.length;
+                        const totalVolume = sets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
                         historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${count} sets • ${totalVolume} kg</span></div>`;
                     });
                     
