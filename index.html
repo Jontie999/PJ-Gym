@@ -1258,6 +1258,20 @@
             renderSettings();
         }
 
+        async function moveExercise(name, direction) {
+            const workout = workoutTypes[currentWorkoutId];
+            const exercises = workout.exercises;
+            const idx = exercises.findIndex(ex => ex.name === name);
+            if (idx === -1) return;
+            const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (newIdx < 0 || newIdx >= exercises.length) return;
+
+            [exercises[idx], exercises[newIdx]] = [exercises[newIdx], exercises[idx]];
+
+            await saveWorkoutTypes();
+            renderExercises();
+        }
+
         function openWorkoutManager() {
             renderManageWorkouts();
             document.getElementById('workoutManagerModal').classList.add('active');
@@ -1322,7 +1336,7 @@
                 return;
             }
 
-            workout.exercises.forEach(exercise => {
+            workout.exercises.forEach((exercise, exerciseIndex) => {
                 const sets = currentWorkout[exercise.name] || [];
                 const totalVolume = sets.filter(s => s.completed).reduce((sum, set) => {
                     return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
@@ -1343,6 +1357,8 @@
                     <div class="exercise-header">
                         <div class="exercise-name">${exercise.name}</div>
                         <div class="exercise-total">${totalVolume > 0 ? totalVolume + ' kg total' : ''}</div>
+                        <button class="icon-btn" onclick="moveExercise('${exercise.name}', 'up')" ${exerciseIndex === 0 ? 'disabled' : ''} style="padding:4px 8px;font-size:11px;">▲</button>
+                        <button class="icon-btn" onclick="moveExercise('${exercise.name}', 'down')" ${exerciseIndex === workout.exercises.length - 1 ? 'disabled' : ''} style="padding:4px 8px;font-size:11px;margin-right:6px;">▼</button>
                         <button class="rest-time-badge" onclick="openEditExercise('${exercise.name}')" aria-label="Edit rest time for ${exercise.name}">⏱️ ${exerciseRestTime}s</button>
                         <button class="delete-exercise-btn" onclick="deleteExercise('${exercise.name}')">✕</button>
                     </div>
@@ -1610,8 +1626,7 @@
                 let historyHTML = '';
                 workouts.forEach(entry => {
                     const dateStr = entry.dateObj.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                    const workout = workoutTypes[entry.workoutId];
-                    const exercises = workout ? workout.exercises : Object.keys(entry.workout).map(name => ({ name }));
+                    const exercises = Object.keys(entry.workout).map(name => ({ name }));
                     
                     historyHTML += `<div class="history-item"><div class="history-date">${dateStr}</div><div class="history-workout-name">${entry.workoutName}</div><div class="history-exercises">`;
                     
