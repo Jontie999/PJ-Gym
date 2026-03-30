@@ -1338,12 +1338,34 @@
 
             workout.exercises.forEach((exercise, exerciseIndex) => {
                 const sets = currentWorkout[exercise.name] || [];
-                const totalVolume = sets.filter(s => s.completed).reduce((sum, set) => {
+                const currentVolume = sets.filter(s => s.completed).reduce((sum, set) => {
                     return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
                 }, 0);
                 const exerciseRestTime = exercise.restTime || workoutTypes[currentWorkoutId].restTime || REST_TIME;
 
                 const lastSets = lastSessionData && lastSessionData.workout && lastSessionData.workout[exercise.name];
+                const lastSessionVolume = lastSets ? lastSets.filter(s => s.completed).reduce((sum, set) => {
+                    return sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+                }, 0) : 0;
+
+                let volumeDisplayHtml = '';
+                if (lastSessionVolume > 0 || currentVolume > 0) {
+                    const prevPart = lastSessionVolume > 0
+                        ? `<div style="color:#888;font-size:11px;font-weight:normal">prev ${lastSessionVolume}kg</div>`
+                        : '';
+                    let currentPart = '';
+                    if (currentVolume > 0) {
+                        const color = lastSessionVolume > 0
+                            ? (currentVolume >= lastSessionVolume ? '#22c55e' : '#ef4444')
+                            : '#22c55e';
+                        const arrow = lastSessionVolume > 0
+                            ? (currentVolume > lastSessionVolume ? ' ↑' : currentVolume < lastSessionVolume ? ' ↓' : '')
+                            : '';
+                        currentPart = `<div style="color:${color}">${currentVolume}kg${arrow}</div>`;
+                    }
+                    volumeDisplayHtml = prevPart + currentPart;
+                }
+
                 const lastSessionHtml = lastSets && lastSets.length > 0
                     ? `<div class="last-session">
                         <span class="last-session-label">Prev session:</span>
@@ -1356,7 +1378,7 @@
                 card.innerHTML = `
                     <div class="exercise-header">
                         <div class="exercise-name">${exercise.name}</div>
-                        <div class="exercise-total">${totalVolume > 0 ? totalVolume + ' kg total' : ''}</div>
+                        <div class="exercise-total">${volumeDisplayHtml}</div>
                         <button class="icon-btn" onclick="moveExercise('${exercise.name}', 'up')" ${exerciseIndex === 0 ? 'disabled' : ''} style="padding:4px 8px;font-size:11px;">▲</button>
                         <button class="icon-btn" onclick="moveExercise('${exercise.name}', 'down')" ${exerciseIndex === workout.exercises.length - 1 ? 'disabled' : ''} style="padding:4px 8px;font-size:11px;margin-right:6px;">▼</button>
                         <button class="rest-time-badge" onclick="openEditExercise('${exercise.name}')" aria-label="Edit rest time for ${exercise.name}">⏱️ ${exerciseRestTime}s</button>
@@ -1775,19 +1797,25 @@
             }
 
             const summary = {};
-            workouts.forEach(w => {
+            // Sort descending by date so recentSessions[0] is the most recent
+            const sorted = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sorted.forEach(w => {
                 const id = w.workoutId || 'unknown';
                 const name = w.workoutName || id;
                 if (!summary[id]) {
-                    summary[id] = { name, sessions: 0, totalVolume: 0, lastDate: null };
+                    summary[id] = { name, sessions: 0, recentSessions: [], lastDate: null };
                 }
                 summary[id].sessions++;
+                let vol = 0;
                 if (w.workout) {
                     Object.values(w.workout).forEach(sets => {
                         sets.forEach(set => {
-                            summary[id].totalVolume += (parseFloat(set.weight) || 0) * (parseFloat(set.reps) || 0);
+                            vol += (parseFloat(set.weight) || 0) * (parseFloat(set.reps) || 0);
                         });
                     });
+                }
+                if (summary[id].recentSessions.length < 2) {
+                    summary[id].recentSessions.push({ vol, date: w.date });
                 }
                 const date = w.date ? new Date(w.date) : null;
                 if (date && !isNaN(date) && (!summary[id].lastDate || date > summary[id].lastDate)) {
@@ -1795,16 +1823,40 @@
                 }
             });
 
+            // Calculate current in-progress workout volume (completed sets only)
+            let currentVol = 0;
+            if (currentWorkout) {
+                Object.values(currentWorkout).forEach(sets => {
+                    sets.filter(s => s.completed).forEach(set => {
+                        currentVol += (parseFloat(set.weight) || 0) * (parseFloat(set.reps) || 0);
+                    });
+                });
+            }
+
             let html = '<div class="chart-section"><h3>Workout Summary</h3><div class="summary-grid">';
-            Object.values(summary).sort((a, b) => b.sessions - a.sessions).forEach(s => {
+            Object.entries(summary).sort((a, b) => b[1].sessions - a[1].sessions).forEach(([id, s]) => {
                 const dateStr = s.lastDate
                     ? s.lastDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                     : '—';
+
+                // Show last 2 sessions (oldest first) then current
+                let volHtml = '';
+                [...s.recentSessions].reverse().forEach(session => {
+                    const d = new Date(session.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                    volHtml += `<div class="summary-stat"><span>${d}</span><span class="summary-value">${Math.round(session.vol).toLocaleString()} kg</span></div>`;
+                });
+                if (id === currentWorkoutId && currentVol > 0) {
+                    const lastVol = s.recentSessions.length > 0 ? s.recentSessions[0].vol : null;
+                    const color = lastVol !== null ? (currentVol >= lastVol ? '#22c55e' : '#ef4444') : '#22c55e';
+                    const arrow = lastVol !== null ? (currentVol > lastVol ? ' ↑' : currentVol < lastVol ? ' ↓' : '') : '';
+                    volHtml += `<div class="summary-stat"><span>Current</span><span class="summary-value" style="color:${color}">${Math.round(currentVol).toLocaleString()} kg${arrow}</span></div>`;
+                }
+
                 html += `
                     <div class="summary-card">
                         <div class="summary-name">${s.name}</div>
                         <div class="summary-stat"><span>Sessions</span><span class="summary-value">${s.sessions}</span></div>
-                        <div class="summary-stat"><span>Total Volume</span><span class="summary-value">${Math.round(s.totalVolume).toLocaleString()} kg</span></div>
+                        ${volHtml}
                         <div class="summary-stat"><span>Last Session</span><span class="summary-value">${dateStr}</span></div>
                     </div>`;
             });
