@@ -735,7 +735,7 @@
                 <div class="settings-item">
                     <div>
                         <div style="color: #fff; font-size: 16px;">Gym Tracker</div>
-                        <div style="color: #888; font-size: 14px;">Version 2.02</div>
+                        <div style="color: #888; font-size: 14px;" id="appVersionDisplay"></div>
                     </div>
                 </div>
             </div>
@@ -1241,6 +1241,23 @@
             }
         }
 
+        async function moveWorkout(id, direction) {
+            const keys = Object.keys(workoutTypes);
+            const idx = keys.indexOf(id);
+            const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (newIdx < 0 || newIdx >= keys.length) return;
+
+            [keys[idx], keys[newIdx]] = [keys[newIdx], keys[idx]];
+
+            const reordered = {};
+            keys.forEach(k => { reordered[k] = workoutTypes[k]; });
+            workoutTypes = reordered;
+
+            await saveWorkoutTypes();
+            renderWorkoutSelector();
+            renderSettings();
+        }
+
         function openWorkoutManager() {
             renderManageWorkouts();
             document.getElementById('workoutManagerModal').classList.add('active');
@@ -1600,8 +1617,9 @@
                     
                     exercises.forEach(exercise => {
                         const sets = entry.workout[exercise.name] || [];
-                        const count = sets.length;
-                        const totalVolume = sets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
+                        const completedSets = sets.filter(s => s.completed);
+                        const count = completedSets.length;
+                        const totalVolume = completedSets.reduce((sum, set) => sum + (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0), 0);
                         historyHTML += `<div class="history-exercise"><span>${exercise.name}</span><span>${count} sets • ${totalVolume} kg</span></div>`;
                     });
                     
@@ -1619,7 +1637,8 @@
             const container = document.getElementById('workoutsList');
             container.innerHTML = '';
 
-            Object.keys(workoutTypes).forEach(id => {
+            const workoutKeys = Object.keys(workoutTypes);
+            workoutKeys.forEach((id, index) => {
                 const workout = workoutTypes[id];
                 const item = document.createElement('div');
                 item.className = 'settings-item';
@@ -1629,12 +1648,17 @@
                         <div style="color: #888; font-size: 14px;">${workout.exercises.length} exercises • ${workout.restTime || REST_TIME}s rest</div>
                     </div>
                     <div class="btn-group">
+                        <button class="icon-btn" onclick="moveWorkout('${id}', 'up')" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="icon-btn" onclick="moveWorkout('${id}', 'down')" ${index === workoutKeys.length - 1 ? 'disabled' : ''}>▼</button>
                         <button class="icon-btn" onclick="openWorkoutModal('${id}')">Edit</button>
                         <button class="icon-btn danger-btn" onclick="deleteWorkout('${id}')">Delete</button>
                     </div>
                 `;
                 container.appendChild(item);
             });
+
+            const versionEl = document.getElementById('appVersionDisplay');
+            if (versionEl) versionEl.textContent = `Version ${APP_VERSION}`;
         }
 
         function switchTab(tab) {
@@ -1885,6 +1909,7 @@
         window.closeWorkoutModal = closeWorkoutModal;
         window.saveWorkoutType = saveWorkoutType;
         window.deleteWorkout = deleteWorkout;
+        window.moveWorkout = moveWorkout;
         window.openAddExercise = openAddExercise;
         window.openEditExercise = openEditExercise;
         window.closeAddExercise = closeAddExercise;
