@@ -270,16 +270,16 @@
             gap: 2px;
             padding: 2px 6px;
             border-radius: 4px;
-            background: rgba(102, 126, 234, 0.08);
+            background: rgba(255, 255, 255, 0.85);
             white-space: nowrap;
         }
 
         .last-session-set.completed {
-            color: #a0aec0;
+            color: #222;
         }
 
         .last-session-set.incomplete {
-            color: #888;
+            color: #555;
         }
 
         .sets-container {
@@ -1386,7 +1386,16 @@
                     </div>
                     ${lastSessionHtml}
                     <div class="sets-container">
-                        ${sets.map((set, index) => `
+                        ${sets.map((set, index) => {
+                            // Only compare against completed sets from the previous session
+                            const prevSet = lastSets && lastSets[index] && lastSets[index].completed ? lastSets[index] : null;
+                            const prevWeight = prevSet ? parseFloat(prevSet.weight) : null;
+                            const currWeight = parseFloat(set.weight);
+                            let weightColor = '#fff';
+                            if (prevWeight !== null && !isNaN(currWeight) && currWeight > 0) {
+                                weightColor = currWeight > prevWeight ? '#22c55e' : '#ef4444';
+                            }
+                            return `
                             <div class="set-row">
                                 <div class="set-number">Set ${index + 1}</div>
                                 <div class="input-group">
@@ -1395,6 +1404,7 @@
                                         type="number" 
                                         class="input-field" 
                                         value="${set.weight}"
+                                        style="color: ${weightColor}"
                                         onchange="updateSet('${exercise.name}', ${index}, 'weight', this.value)"
                                         step="0.5"
                                         inputmode="decimal"
@@ -1417,7 +1427,7 @@
                                     ${set.completed ? '✓' : ''}
                                 </button>
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                 `;
                 container.appendChild(card);
