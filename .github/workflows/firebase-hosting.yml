@@ -20,13 +20,13 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Authenticate with Firebase
+      - name: Authenticate with Firebase (Service Account)
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/firebase.json
-          firebase auth:login:ci || true
-          firebase use --add steam-d22f2 --token "$(firebase login:ci --json | jq -r '.token')" || true
+          echo "$FIREBASE_SERVICE_ACCOUNT" > /tmp/serviceAccount.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/serviceAccount.json
+          firebase projects:list
 
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting --project steam-d22f2
