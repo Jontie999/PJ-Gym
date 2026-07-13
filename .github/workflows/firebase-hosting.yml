@@ -30,6 +30,16 @@ jobs:
         run: |
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME/serviceAccount.json"
           firebase --version
+      - name: Validate service account JSON exists
+        run: |
+          if [ -s "$HOME/serviceAccount.json" ]; then
+          echo "Service account JSON loaded successfully."
+          else
+          echo "Service account JSON is EMPTY or missing."
+          exit 1
+          fi
+
+
 
       - name: Deploy to Firebase Hosting
         run: |
