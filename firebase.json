@@ -8,9 +8,8 @@
       ".github/**",
       "*.py",
       "*.csv",
-      "index.html.claude",
-      "index.htmlmk*",
-      "index.htmlnk*",
+      "*.claude",
+      "index.html[mn]k*",
       "index.old.html",
       "indexmk*"
     ]
