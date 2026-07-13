@@ -8,10 +8,17 @@
       ".github/**",
       "*.py",
       "*.csv",
-      "*.claude",
-      "index.html[mn]k*",
+      "index.html.claude",
+      "index.htmlmk10",
+      "index.htmlmk11",
+      "index.htmlmk12",
+      "index.htmlmk4",
+      "index.htmlmk6",
+      "index.htmlmk7",
+      "index.htmlmk8",
+      "index.htmlnk5",
       "index.old.html",
-      "indexmk*"
+      "indexmk3"
     ]
   }
 }
