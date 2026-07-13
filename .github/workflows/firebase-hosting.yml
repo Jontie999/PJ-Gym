@@ -23,7 +23,7 @@ jobs:
 
       - name: Write service account JSON
         run: |
-          printf '%s' echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/serviceAccount.json
+          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/serviceAccount.json
 
       - name: Authenticate with Firebase
         run: |
