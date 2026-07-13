@@ -6,9 +6,8 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 
-// CONFIG
 const USER_ID = "6LQ3KJW8rJfUlmwmEEvpWEJBXwk2";
-const MULTIPLIER = 3; // Outlier threshold
+const THRESHOLD = 0.5; // 50% deviation allowed
 
 async function fixOutliers() {
   const workoutsRef = db.collection("users").doc(USER_ID).collection("workouts");
@@ -32,8 +31,12 @@ async function fixOutliers() {
 
     const lastValid = lastValidVolumeByExercise[exercise];
 
-    if (volume > lastValid * MULTIPLIER) {
-      console.log(`Outlier detected in ${exercise} on ${w.date}: ${volume} → fixing to ${lastValid}`);
+    const deviation = Math.abs(volume - lastValid) / lastValid;
+
+    if (deviation > THRESHOLD) {
+      console.log(
+        `Outlier detected for ${exercise} on ${w.date}: ${volume} → fixing to ${lastValid}`
+      );
 
       await workoutsRef.doc(w.id).update({
         totalVolume: lastValid
