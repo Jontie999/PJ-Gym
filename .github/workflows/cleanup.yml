@@ -1,0 +1,38 @@
+name: Data Cleanup Workflow
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: pip install pandas numpy
+      
+      - name: Run cleanup script
+        run: python3 cleanup_workout_data.py
+      
+      - name: Replace original with cleaned version
+        run: |
+          cp workout_detailed_exercise_logs.csv workout_detailed_exercise_logs.backup
+          mv workout_detailed_exercise_logs_CLEANED.csv workout_detailed_exercise_logs.csv
+      
+      - name: Commit cleaned data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add workout_detailed_exercise_logs.csv workout_detailed_exercise_logs.backup
+          git commit -m "Data cleanup: fix 4 volume outliers" || echo "No changes to commit"
+      
+      - name: Push changes
+        run: git push
