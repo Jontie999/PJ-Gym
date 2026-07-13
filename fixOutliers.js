@@ -6,13 +6,13 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 
-// CONFIG
-const USER_ID = "Nk64dxfaLOaxBjessyF8Tgifdt73";   // your real user ID
-const THRESHOLD = 0.5; // 50% deviation allowed
+const USER_ID = "Nk64dxfaLOaxBjessyF8Tgifdt73";
+const SET_THRESHOLD = 0.2; // 20% deviation allowed
 
-// Compute total volume for an exercise
-function computeVolume(sets) {
-  return sets.reduce((sum, s) => sum + (s.reps * s.weight), 0);
+function isSetOutlier(today, last) {
+  const repsDev = Math.abs(today.reps - last.reps) / last.reps;
+  const weightDev = Math.abs(today.weight - last.weight) / last.weight;
+  return repsDev > SET_THRESHOLD || weightDev > SET_THRESHOLD;
 }
 
 async function fixOutliers() {
@@ -27,63 +27,57 @@ async function fixOutliers() {
     ...doc.data()
   }));
 
-  // Track last valid sets per exercise
   let lastValidSets = {};
 
   for (const w of workouts) {
     const workoutId = w.id;
-    const exercises = w;
 
-    // Skip metadata fields
-    const exerciseNames = Object.keys(exercises).filter(
+    const exerciseNames = Object.keys(w).filter(
       key => !["date", "workoutId", "workoutName"].includes(key)
     );
 
     for (const exercise of exerciseNames) {
-      const setsToday = exercises[exercise];
-
-      if (!Array.isArray(setsToday)) continue;
-
-      const todayVolume = computeVolume(setsToday);
+      const todaySets = w[exercise];
+      if (!Array.isArray(todaySets)) continue;
 
       if (!lastValidSets[exercise]) {
-        // First time seeing this exercise
-        lastValidSets[exercise] = setsToday;
+        lastValidSets[exercise] = todaySets;
         continue;
       }
 
       const lastSets = lastValidSets[exercise];
-      const lastVolume = computeVolume(lastSets);
 
-      // Compute deviation
-      const deviation = Math.abs(todayVolume - lastVolume) / lastVolume;
+      let changed = false;
+      const adjustedSets = todaySets.map((set, index) => {
+        const last = lastSets[index] || lastSets[lastSets.length - 1];
 
-      if (deviation > THRESHOLD) {
-        console.log(
-          `Outlier detected for ${exercise} in workout ${workoutId}: ${todayVolume} → fixing to ${lastVolume}`
-        );
-
-        // Adjust today's sets to match last valid reps/weights
-        const adjustedSets = setsToday.map((set, index) => {
-          const last = lastSets[index] || lastSets[lastSets.length - 1];
+        if (isSetOutlier(set, last)) {
+          changed = true;
           return {
             reps: last.reps,
             weight: last.weight,
             completed: set.completed
           };
-        });
+        }
+
+        return set;
+      });
+
+      if (changed) {
+        console.log(
+          `Adjusted ${exercise} in workout ${workoutId} (per-set correction)`
+        );
 
         await workoutsRef.doc(workoutId).update({
           [exercise]: adjustedSets
         });
       } else {
-        // Normal day → update last valid sets
-        lastValidSets[exercise] = setsToday;
+        lastValidSets[exercise] = todaySets;
       }
     }
   }
 
-  console.log("Per-exercise outlier correction complete.");
+  console.log("Per-exercise set-level correction complete.");
 }
 
 fixOutliers().catch(console.error);
