@@ -23,7 +23,7 @@ jobs:
 
       - name: Write service account JSON
         run: |
-          CAT << 'eof' > $HOME/serviceAccount.json 
+          cat << 'eof' > $HOME/serviceAccount.json 
           ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} 
           EOF
       
