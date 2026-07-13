@@ -22,8 +22,8 @@ jobs:
       - name: Write service account JSON
         run: |
           cat << 'EOF' > $HOME/serviceAccount.json
-${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-EOF
+          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EOF
 
       - name: Run outlier cleanup script
         env:
