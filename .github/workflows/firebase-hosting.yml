@@ -29,4 +29,4 @@ jobs:
           firebase projects:list
 
       - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting --project steam-d22f2
+        run: firebase deploy --only hosting --project pj-gym-90c42
