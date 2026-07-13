@@ -7,12 +7,10 @@ admin.initializeApp({
 const db = admin.firestore();
 
 const USER_ID = "Nk64dxfaLOaxBjessyF8Tgifdt73";
-const SET_THRESHOLD = 0.2; // 20% deviation allowed
+const VOLUME_THRESHOLD = 0.3; // 30% deviation allowed
 
-function isSetOutlier(today, last) {
-  const repsDev = Math.abs(today.reps - last.reps) / last.reps;
-  const weightDev = Math.abs(today.weight - last.weight) / last.weight;
-  return repsDev > SET_THRESHOLD || weightDev > SET_THRESHOLD;
+function computeVolume(sets) {
+  return sets.reduce((sum, s) => sum + (s.reps * s.weight), 0);
 }
 
 async function fixOutliers() {
@@ -40,44 +38,43 @@ async function fixOutliers() {
       const todaySets = w[exercise];
       if (!Array.isArray(todaySets)) continue;
 
+      const todayVolume = computeVolume(todaySets);
+
       if (!lastValidSets[exercise]) {
         lastValidSets[exercise] = todaySets;
         continue;
       }
 
       const lastSets = lastValidSets[exercise];
+      const lastVolume = computeVolume(lastSets);
 
-      let changed = false;
-      const adjustedSets = todaySets.map((set, index) => {
-        const last = lastSets[index] || lastSets[lastSets.length - 1];
+      const deviation = Math.abs(todayVolume - lastVolume) / lastVolume;
 
-        if (isSetOutlier(set, last)) {
-          changed = true;
+      if (deviation > VOLUME_THRESHOLD) {
+        console.log(
+          `OUTLIER: ${exercise} in workout ${workoutId} — ${todayVolume} vs ${lastVolume}`
+        );
+
+        const adjustedSets = todaySets.map((set, index) => {
+          const last = lastSets[index] || lastSets[lastSets.length - 1];
           return {
             reps: last.reps,
             weight: last.weight,
             completed: set.completed
           };
-        }
-
-        return set;
-      });
-
-      if (changed) {
-        console.log(
-          `Adjusted ${exercise} in workout ${workoutId} (per-set correction)`
-        );
+        });
 
         await workoutsRef.doc(workoutId).update({
           [exercise]: adjustedSets
         });
+
       } else {
         lastValidSets[exercise] = todaySets;
       }
     }
   }
 
-  console.log("Per-exercise set-level correction complete.");
+  console.log("Outlier correction complete.");
 }
 
 fixOutliers().catch(console.error);
